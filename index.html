@@ -857,43 +857,7 @@ renderTrends();
 </script>
 
 <!-- ── Floating Action Bar ─────────────────────────────────────────────── -->
-<div id="fab-bar" style="
-  position:fixed; bottom:28px; right:28px;
-  display:flex; flex-direction:column; gap:10px; z-index:9999;
-">
-  <!-- Update Leads -->
-  <a href="https://app.propertyfinder.ae/lead-management" target="_blank"
-     title="Open Property Finder lead management to update today's leads"
-     style="
-       display:flex; align-items:center; gap:9px;
-       background:#6366f1; color:#fff; font-weight:700; font-size:12px;
-       padding:11px 18px; border-radius:30px; text-decoration:none;
-       box-shadow:0 4px 14px rgba(99,102,241,.45);
-       transition:transform .15s,box-shadow .15s;
-     "
-     onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(99,102,241,.55)'"
-     onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(99,102,241,.45)'"
-  >
-    <span style="font-size:15px">&#128203;</span> Update Leads
-  </a>
 
-  <!-- Push Live -->
-  <button id="fab-push"
-     title="Copy the deploy command — paste into Terminal to push live"
-     onclick="fabPush()"
-     style="
-       display:flex; align-items:center; gap:9px;
-       background:#00b4a0; color:#fff; font-weight:700; font-size:12px;
-       padding:11px 18px; border-radius:30px; border:none; cursor:pointer;
-       box-shadow:0 4px 14px rgba(0,180,160,.4);
-       transition:transform .15s,box-shadow .15s;
-     "
-     onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,180,160,.55)'"
-     onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(0,180,160,.4)'"
-  >
-    <span style="font-size:15px">&#128640;</span> <span id="fab-push-lbl">Push Live</span>
-  </button>
-</div>
 
 <!-- Toast -->
 <div id="fab-toast" style="
@@ -915,49 +879,7 @@ function fabToast(msg, dur, color) {
   setTimeout(function(){ t.style.opacity = '0'; }, dur || 3000);
 }
 
-async function fabPush() {
-  var lbl = document.getElementById('fab-push-lbl');
-  var btn = document.getElementById('fab-push');
-  lbl.textContent = 'Pushing…';
-  btn.disabled = true;
-
-  var TOKEN = '';
-  var BASE  = 'https://api.github.com/repos/fam-pricing/fam-pricing/contents/';
-  var files = [
-    { path: 'index.html', content: document.documentElement.outerHTML }
-  ];
-
-  try {
-    for (var i = 0; i < files.length; i++) {
-      var f = files[i];
-      // Get current SHA
-      var shaRes = await fetch(BASE + f.path, {
-        headers: { 'Authorization': 'token ' + TOKEN }
-      });
-      var shaData = await shaRes.json();
-      // Encode content as base64
-      var encoded = btoa(unescape(encodeURIComponent(f.content)));
-      // Push
-      var putRes = await fetch(BASE + f.path, {
-        method: 'PUT',
-        headers: { 'Authorization': 'token ' + TOKEN, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: 'Manual update — ' + new Date().toISOString().slice(0,16),
-          content: encoded,
-          sha: shaData.sha
-        })
-      });
-      if (!putRes.ok) throw new Error('Push failed: ' + putRes.status);
-    }
-    fabToast('\u2705 Pushed live!\nLive in ~30 seconds.', 4000, '#065f46');
-    lbl.textContent = '\u2713 Done!';
-    setTimeout(function(){ lbl.textContent = 'Push Live'; btn.disabled = false; }, 3000);
-  } catch(e) {
-    fabToast('\u274c Push failed — check connection.', 4000, '#7f1d1d');
-    lbl.textContent = 'Push Live';
-    btn.disabled = false;
-  }
-}
+async 
 </script>
 </body>
 </html>
