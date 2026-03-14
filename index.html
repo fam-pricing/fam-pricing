@@ -668,59 +668,50 @@ var _l24period = "today";
 var L24 = {
   today: {
     label: "Today — March 14, 2026",
-    total: 3, prev: 18, prevLabel: "vs yesterday",
-    weekData:  [3,5,1,10,15,18,3],
+    total: 7, prev: 18, prevLabel: "vs yesterday",
+    weekData:  [3,5,1,10,15,18,7],
     weekLabels:["Mar 8","Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14"],
-    barData:   [18, 3], barLabels: ["Mar 13 (Yesterday)","Mar 14 (Today)"],
+    barData:   [18, 7], barLabels: ["Mar 13 (Yesterday)","Mar 14 (Today)"],
     barColors: ["#e2e8f000", "#00b4a0cc"],
     barHL:     [1],
-    agents: {"Ahmed A.":0, "Sobhi El Bsat":2, "Mona Abdelaziz":1, "Joel V.":0},
+    agents: {"Ahmed A.":1, "Sobhi El Bsat":5, "Mona Abdelaziz":1, "Joel V.":0},
     leads: [
-      {time:"11:56", agent:"Sobhi El Bsat",  ref:"PF-HH-AR-71826",  building:"The Bay, Business Bay",       price:"AED 10,000/mo", status:"DELIVERED"},
-      {time:"11:53", agent:"Sobhi El Bsat",  ref:"PF-HH-AR-95233",  building:"Elite Business Bay Residence", price:"AED 9,000/mo",  status:"DELIVERED"},
-      {time:"03:46", agent:"Mona Abdelaziz", ref:"PF-HH-AR-112088", building:"Grande, Downtown Dubai",       price:"AED 15,000/mo", status:"REPLIED"}
+      {time:"16:02", agent:"Sobhi El Bsat",                     ref:"PF-HH-AR-121845", building:"Damac Maison",       price:"AED 7,000/mo",  status:"REPLIED"},
+      {time:"15:07", agent:"Sobhi El Bsat",                     ref:"PF-HH-AR-106764", building:"Ahad Residences",    price:"AED 8,000/mo",  status:"REPLIED"},
+      {time:"13:30", agent:"Ahmed Elsayed Hussein Abdelmawgoud",ref:"PF-HH-AR-120609", building:"Nobles Tower",       price:"AED 8,000/mo",  status:"DELIVERED"},
+      {time:"12:32", agent:"Sobhi El Bsat",                     ref:"PF-HH-AR-121845", building:"Damac Maison",       price:"AED 7,000/mo",  status:"REPLIED"},
+      {time:"11:56", agent:"Sobhi El Bsat",                     ref:"PF-HH-AR-71826",  building:"The Bay",            price:"AED 10,000/mo", status:"REPLIED"},
+      {time:"11:53", agent:"Sobhi El Bsat",                     ref:"PF-HH-AR-95233",  building:"Elite Business Bay", price:"AED 9,000/mo",  status:"DELIVERED"},
+      {time:"03:46", agent:"Mona Abdelaziz",                    ref:"PF-HH-AR-112088", building:"Grande, Opera",      price:"AED 15,000/mo", status:"REPLIED"}
     ]
   },
   yesterday: {
     label: "Yesterday — March 13, 2026",
     total: 18, prev: 15, prevLabel: "vs Mar 12",
-    weekData:  [3,5,1,10,15,18,3],
+    weekData:  [3,5,1,10,15,18,7],
     weekLabels:["Mar 8","Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14"],
     barData:   [15, 18], barLabels: ["Mar 12","Mar 13 (Yesterday)"],
     barColors: ["#e2e8f0cc","#2563ebcc"],
     barHL:     [1],
     agents: {"Ahmed A.":0, "Sobhi El Bsat":2, "Mona Abdelaziz":9, "Joel V.":7},
     leads: [
-      {time:"22:55", agent:"Sobhi El Bsat",       ref:"PF-HH-AR-121845", building:"Damac Maison Prive B",         price:"AED 7,000/mo",  status:"REPLIED"},
-      {time:"22:09", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-109138", building:"Binghatti Azure, JVC",         price:"AED 5,400/mo",  status:"REPLIED"},
-      {time:"17:39", agent:"Joel Verghese George", ref:"",                building:"",                             price:"",              status:"REPLIED"},
-      {time:"17:35", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-120919", building:"Elite Residence, Marina",      price:"AED 8,000/mo",  status:"REPLIED"},
-      {time:"17:07", agent:"Sobhi El Bsat",        ref:"PF-HH-AR-106764", building:"Ahad Residences",              price:"AED 8,000/mo",  status:"REPLIED"},
-      {time:"15:34", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-95239",  building:"Elite Business Bay Residence", price:"AED 7,000/mo",  status:"REPLIED"},
-      {time:"14:12", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-109138", building:"Binghatti Azure, JVC",         price:"AED 5,400/mo",  status:"DELIVERED"},
-      {time:"13:36", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-107093", building:"Binghatti Amber, JVC",         price:"AED 6,700/mo",  status:"DELIVERED"},
-      {time:"12:14", agent:"Joel Verghese George", ref:"PF-HH-AR-105911", building:"Elite Residence, Marina",      price:"AED 8,000/mo",  status:"REPLIED"},
-      {time:"12:14", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-112088", building:"Grande, Downtown Dubai",       price:"AED 15,000/mo", status:"REPLIED"},
-      {time:"11:47", agent:"Joel Verghese George", ref:"PF-HH-AR-119832", building:"Binghatti Azure, JVC",         price:"AED 5,400/mo",  status:"REPLIED"},
-      {time:"11:46", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-109138", building:"Binghatti Azure, JVC",         price:"AED 5,400/mo",  status:"REPLIED"},
-      {time:"11:33", agent:"Joel Verghese George", ref:"PF-HH-AR-119832", building:"Binghatti Azure, JVC",         price:"AED 5,400/mo",  status:"REPLIED"},
-      {time:"11:31", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-109138", building:"Binghatti Azure, JVC",         price:"AED 5,400/mo",  status:"REPLIED"},
-      {time:"10:39", agent:"Joel Verghese George", ref:"PF-HH-AR-56999",  building:"MAG 318, Business Bay",        price:"AED 10,899/mo", status:"REPLIED"},
-      {time:"06:45", agent:"Joel Verghese George", ref:"PF-HH-AR-56999",  building:"MAG 318, Business Bay",        price:"AED 10,899/mo", status:"REPLIED"},
-      {time:"04:22", agent:"Joel Verghese George", ref:"PF-HH-AR-75450",  building:"Act Two, Downtown Dubai",      price:"AED 9,000/mo",  status:"REPLIED"},
-      {time:"00:50", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-97299",  building:"Downtown Views II",            price:"AED 17,999/mo", status:"REPLIED"}
+      {time:"22:55", agent:"Sobhi El Bsat",       ref:"PF-HH-AR-121845", building:"Damac Maison",     price:"AED 7,000/mo", status:"REPLIED"},
+      {time:"22:09", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-109138", building:"Binghatti Arista", price:"AED 5,400/mo", status:"REPLIED"},
+      {time:"17:35", agent:"Mona Abdelaziz",       ref:"PF-HH-AR-120919", building:"Elite Residences", price:"AED 8,000/mo", status:"REPLIED"},
+      {time:"17:07", agent:"Sobhi El Bsat",        ref:"PF-HH-AR-106764", building:"Ahad Residences",  price:"AED 8,000/mo", status:"REPLIED"},
+      {time:"12:14", agent:"Joel Verghese George", ref:"PF-HH-AR-105911", building:"Elite Residences", price:"AED 8,000/mo", status:"REPLIED"}
     ]
   },
   week: {
     label: "This Week — Mar 8–14, 2026",
-    total: 55, prev: null, prevLabel: "7-day total",
-    weekData:  [3,5,1,10,15,18,3],
+    total: 59, prev: null, prevLabel: "7-day total",
+    weekData:  [3,5,1,10,15,18,7],
     weekLabels:["Mar 8","Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14"],
-    barData:   [3,5,1,10,15,18,3],
+    barData:   [3,5,1,10,15,18,7],
     barLabels: ["Mar 8","Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14"],
     barColors: ["#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#00b4a0cc"],
     barHL:     [6],
-    agents: {"Ahmed A.":5, "Sobhi El Bsat":16, "Mona Abdelaziz":25, "Joel V.":9},
+    agents: {"Ahmed A.":6, "Sobhi El Bsat":19, "Mona Abdelaziz":25, "Joel V.":9},
     leads: []
   }
 }
