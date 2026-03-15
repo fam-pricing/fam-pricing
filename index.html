@@ -668,45 +668,47 @@ var _l24period = "today";
 var L24 = {
   today: {
     label: "Today — March 15, 2026",
-    total: 0, prev: 8, prevLabel: "vs yesterday",
-    weekData:  [5,1,10,15,18,8,0],
+    total: 1, prev: 8, prevLabel: "vs yesterday",
+    weekData:  [5,1,10,15,18,8,1],
     weekLabels:["Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15"],
-    barData:   [8, 0], barLabels: ["Mar 14 (Yesterday)","Mar 15 (Today)"],
+    barData:   [8, 1], barLabels: ["Mar 14 (Yesterday)","Mar 15 (Today)"],
     barColors: ["#e2e8f000", "#00b4a0cc"],
     barHL:     [1],
-    agents: {"Ahmed A.":0, "Sobhi El Bsat":0, "Mona Abdelaziz":0, "Joel V.":0},
-    leads: []
+    agents: {"Ahmed A.":0, "Sobhi El Bsat":1, "Mona Abdelaziz":0, "Joel V.":0},
+    leads: [
+      {time:"03:04", agent:"Sobhi El Bsat", ref:"PF-HH-AR-80083", building:"", price:"", status:"REPLIED"}
+    ]
   },
   yesterday: {
     label: "Yesterday — March 14, 2026",
     total: 8, prev: 18, prevLabel: "vs Mar 13",
-    weekData:  [5,1,10,15,18,8,0],
+    weekData:  [5,1,10,15,18,8,1],
     weekLabels:["Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15"],
     barData:   [18, 8], barLabels: ["Mar 13","Mar 14 (Yesterday)"],
     barColors: ["#e2e8f0cc","#2563ebcc"],
     barHL:     [1],
     agents: {"Ahmed A.":1, "Sobhi El Bsat":5, "Mona Abdelaziz":2, "Joel V.":0},
     leads: [
-      {time:"20:38", agent:"Mona Abdelaziz",                     ref:"PF-HH-AR-125805", building:"Park Point Building C",        price:"AED 8,000/mo",  status:"REPLIED"},
-      {time:"16:02", agent:"Sobhi El Bsat",                      ref:"PF-HH-AR-121845", building:"Damac Maison Prive B",         price:"AED 7,000/mo",  status:"REPLIED"},
-      {time:"15:07", agent:"Sobhi El Bsat",                      ref:"PF-HH-AR-106764", building:"Ahad Residences",              price:"AED 8,000/mo",  status:"REPLIED"},
-      {time:"13:30", agent:"Ahmed Elsayed Hussein Abdelmawgoud", ref:"PF-HH-AR-120609", building:"Nobles Tower",                 price:"AED 8,000/mo",  status:"DELIVERED"},
-      {time:"12:32", agent:"Sobhi El Bsat",                      ref:"PF-HH-AR-121845", building:"Damac Maison Prive B",         price:"AED 7,000/mo",  status:"REPLIED"},
-      {time:"11:56", agent:"Sobhi El Bsat",                      ref:"PF-HH-AR-71826",  building:"The Bay",                     price:"AED 10,000/mo", status:"REPLIED"},
-      {time:"11:53", agent:"Sobhi El Bsat",                      ref:"PF-HH-AR-95233",  building:"Elite Business Bay Residence", price:"AED 9,000/mo",  status:"DELIVERED"},
-      {time:"03:46", agent:"Mona Abdelaziz",                     ref:"PF-HH-AR-112088", building:"Grande",                      price:"AED 15,000/mo", status:"REPLIED"}
+      {time:"20:38", agent:"Mona Abdelaziz",   ref:"PF-HH-AR-125805", building:"", price:"", status:"REPLIED"},
+      {time:"16:02", agent:"Sobhi El Bsat",     ref:"PF-HH-AR-121845", building:"", price:"", status:"REPLIED"},
+      {time:"15:07", agent:"Sobhi El Bsat",     ref:"PF-HH-AR-106764", building:"", price:"", status:"REPLIED"},
+      {time:"13:30", agent:"Ahmed Elsayed Hussein Abdelmawgoud", ref:"PF-HH-AR-120609", building:"", price:"", status:"DELIVERED"},
+      {time:"12:32", agent:"Sobhi El Bsat",     ref:"PF-HH-AR-121845", building:"", price:"", status:"REPLIED"},
+      {time:"11:56", agent:"Sobhi El Bsat",     ref:"PF-HH-AR-71826",  building:"", price:"", status:"REPLIED"},
+      {time:"11:53", agent:"Sobhi El Bsat",     ref:"PF-HH-AR-95233",  building:"", price:"", status:"DELIVERED"},
+      {time:"03:46", agent:"Mona Abdelaziz",    ref:"PF-HH-AR-112088", building:"", price:"", status:"REPLIED"}
     ]
   },
   week: {
     label: "This Week — Mar 9–15, 2026",
-    total: 57, prev: null, prevLabel: "7-day total",
-    weekData:  [5,1,10,15,18,8,0],
+    total: 58, prev: null, prevLabel: "7-day total",
+    weekData:  [5,1,10,15,18,8,1],
     weekLabels:["Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15"],
-    barData:   [5,1,10,15,18,8,0],
+    barData:   [5,1,10,15,18,8,1],
     barLabels: ["Mar 9","Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15"],
     barColors: ["#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#00b4a0cc"],
     barHL:     [6],
-    agents: {"Ahmed A.":4, "Sobhi El Bsat":18, "Mona Abdelaziz":26, "Joel V.":9},
+    agents: {"Ahmed A.":4, "Sobhi El Bsat":19, "Mona Abdelaziz":26, "Joel V.":9},
     leads: []
   }
 }
