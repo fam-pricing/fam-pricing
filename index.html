@@ -668,45 +668,48 @@ var _l24period = "today";
 var L24 = {
   today: {
     label: "Today \u2014 March 16, 2026",
-    total: 1, prev: 6, prevLabel: "vs yesterday",
-    weekData:  [1,10,15,18,8,6,1],
+    total: 4, prev: 6, prevLabel: "vs yesterday",
+    weekData:  [1,10,15,18,8,6,4],
     weekLabels:["Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16"],
-    barData:   [6, 1], barLabels: ["Mar 15 (Yesterday)","Mar 16 (Today)"],
+    barData:   [6, 4], barLabels: ["Mar 15 (Yesterday)","Mar 16 (Today)"],
     barColors: ["#e2e8f000", "#00b4a0cc"],
     barHL:     [1],
-    agents: {"Ahmed A.":0, "Sobhi El Bsat":1, "Mona Abdelaziz":0, "Joel V.":0},
+    agents: {"Ahmed A.":1, "Sobhi El Bsat":2, "Mona Abdelaziz":1, "Joel V.":0},
     leads: [
+      {time:"11:41", agent:"Mona Abdelaziz", ref:"PF-HH-AR-50489", building:"", price:"", status:"REPLIED"},
+      {time:"09:57", agent:"Sobhi El Bsat", ref:"PF-HH-AR-121845", building:"", price:"", status:"DELIVERED"},
+      {time:"09:55", agent:"Ahmed Elsayed Hussein Abdelmawgoud", ref:"PF-HH-AR-120609", building:"", price:"", status:"DELIVERED"},
       {time:"00:23", agent:"Sobhi El Bsat", ref:"PF-HH-AR-121845", building:"", price:"", status:"REPLIED"}
     ]
   },
   yesterday: {
     label: "Yesterday \u2014 March 15, 2026",
     total: 6, prev: 8, prevLabel: "vs Mar 14",
-    weekData:  [1,10,15,18,8,6,1],
+    weekData:  [1,10,15,18,8,6,4],
     weekLabels:["Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16"],
     barData:   [8, 6], barLabels: ["Mar 14","Mar 15 (Yesterday)"],
     barColors: ["#e2e8f0cc","#2563ebcc"],
     barHL:     [1],
     agents: {"Ahmed A.":1, "Sobhi El Bsat":4, "Mona Abdelaziz":1, "Joel V.":0},
     leads: [
-      {time:"14:37", agent:"Mona Abdelaziz",                        ref:"PF-HH-AR-18017",  building:"", price:"", status:"REPLIED"},
-      {time:"14:36", agent:"Sobhi El Bsat",                         ref:"PF-HH-AR-95233",  building:"", price:"", status:"REPLIED"},
-      {time:"12:31", agent:"Sobhi El Bsat",                         ref:"PF-HH-AR-121845", building:"", price:"", status:"REPLIED"},
-      {time:"11:28", agent:"Ahmed Elsayed Hussein Abdelmawgoud",     ref:"PF-HH-AR-120609", building:"", price:"", status:"DELIVERED"},
-      {time:"11:13", agent:"Sobhi El Bsat",                         ref:"PF-HH-AR-106764", building:"", price:"", status:"REPLIED"},
-      {time:"03:04", agent:"Sobhi El Bsat",                         ref:"PF-HH-AR-80083",  building:"", price:"", status:"REPLIED"}
+      {time:"14:37", agent:"Mona Abdelaziz", ref:"PF-HH-AR-18017", building:"", price:"", status:"REPLIED"},
+      {time:"14:36", agent:"Sobhi El Bsat", ref:"PF-HH-AR-95233", building:"", price:"", status:"REPLIED"},
+      {time:"12:31", agent:"Sobhi El Bsat", ref:"PF-HH-AR-121845", building:"", price:"", status:"REPLIED"},
+      {time:"11:28", agent:"Ahmed Elsayed Hussein Abdelmawgoud", ref:"PF-HH-AR-120609", building:"", price:"", status:"DELIVERED"},
+      {time:"11:13", agent:"Sobhi El Bsat", ref:"PF-HH-AR-106764", building:"", price:"", status:"REPLIED"},
+      {time:"03:04", agent:"Sobhi El Bsat", ref:"PF-HH-AR-80083", building:"", price:"", status:"REPLIED"}
     ]
   },
   week: {
     label: "This Week \u2014 Mar 10\u201316, 2026",
-    total: 59, prev: null, prevLabel: "7-day total",
-    weekData:  [1,10,15,18,8,6,1],
+    total: 62, prev: null, prevLabel: "7-day total",
+    weekData:  [1,10,15,18,8,6,4],
     weekLabels:["Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16"],
-    barData:   [1,10,15,18,8,6,1],
+    barData:   [1,10,15,18,8,6,4],
     barLabels: ["Mar 10","Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16"],
     barColors: ["#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#00b4a0cc"],
     barHL:     [6],
-    agents: {"Ahmed A.":5, "Sobhi El Bsat":21, "Mona Abdelaziz":25, "Joel V.":8},
+    agents: {"Ahmed A.":6, "Sobhi El Bsat":22, "Mona Abdelaziz":26, "Joel V.":8},
     leads: []
   }
 }
