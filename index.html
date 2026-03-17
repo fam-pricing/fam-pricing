@@ -668,19 +668,21 @@ var _l24period = "today";
 var L24 = {
   today: {
     label: "Today — March 17, 2026",
-    total: 0, prev: 6, prevLabel: "vs yesterday",
-    weekData:  [10,15,18,8,6,6,0],
+    total: 1, prev: 6, prevLabel: "vs yesterday",
+    weekData:  [10,15,18,8,6,6,1],
     weekLabels:["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
-    barData:   [6, 0], barLabels: ["Mar 16 (Yesterday)","Mar 17 (Today)"],
+    barData:   [6, 1], barLabels: ["Mar 16 (Yesterday)","Mar 17 (Today)"],
     barColors: ["#e2e8f000", "#00b4a0cc"],
     barHL:     [1],
-    agents: {"Ahmed A.":0, "Sobhi El Bsat":0, "Mona Abdelaziz":0, "Joel V.":0},
-    leads: []
+    agents: {"Ahmed A.":1, "Sobhi El Bsat":0, "Mona Abdelaziz":0, "Joel V.":0},
+    leads: [
+      {time:"04:58", agent:"Ahmed Elsayed Hussein Abdelmawgoud", ref:"PF-HH-AR-120609", building:"", price:"", status:"DELIVERED"}
+    ]
   },
   yesterday: {
     label: "Yesterday — March 16, 2026",
     total: 6, prev: 6, prevLabel: "vs Mar 15",
-    weekData:  [10,15,18,8,6,6,0],
+    weekData:  [10,15,18,8,6,6,1],
     weekLabels:["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
     barData:   [6, 6], barLabels: ["Mar 15","Mar 16 (Yesterday)"],
     barColors: ["#e2e8f0cc","#2563ebcc"],
@@ -697,14 +699,14 @@ var L24 = {
   },
   week: {
     label: "This Week — Mar 11–17, 2026",
-    total: 63, prev: null, prevLabel: "7-day total",
-    weekData:  [10,15,18,8,6,6,0],
+    total: 64, prev: null, prevLabel: "7-day total",
+    weekData:  [10,15,18,8,6,6,1],
     weekLabels:["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
-    barData:   [10,15,18,8,6,6,0],
+    barData:   [10,15,18,8,6,6,1],
     barLabels: ["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
     barColors: ["#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#00b4a0cc"],
     barHL:     [6],
-    agents: {"Ahmed A.":6, "Sobhi El Bsat":22, "Mona Abdelaziz":27, "Joel V.":8},
+    agents: {"Ahmed A.":7, "Sobhi El Bsat":22, "Mona Abdelaziz":27, "Joel V.":8},
     leads: []
   }
 }
