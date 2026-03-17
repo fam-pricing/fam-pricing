@@ -375,7 +375,7 @@ function renderHeader() {
     var bSet = {};
     for (var i=0; i<filtered.length; i++) bSet[filtered[i].building] = 1;
     document.getElementById("n-blds").textContent = Object.keys(bSet).length;
-    document.getElementById("n-combos").textContent = filtered.length;
+    var nCombosEl = document.getElementById("n-combos"); if (nCombosEl) nCombosEl.textContent = filtered.length;
     if (typeof LEADS_TS !== "undefined") { var el = document.getElementById("leads-ts-hdr"); if (el) el.textContent = LEADS_TS; }
 }
 
@@ -873,7 +873,7 @@ function fabToast(msg, dur, color) {
   setTimeout(function(){ t.style.opacity = '0'; }, dur || 3000);
 }
 
-async 
+
 </script>
 </body>
 </html>
