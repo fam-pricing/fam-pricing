@@ -146,7 +146,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div style="display:flex;align-items:center">
     <div class="logo">f<span class="logo-dot">a</span>m Living<span class="badge">Pricing Intelligence</span></div>
   </div>
-  <div class="hdr-meta">Last updated <b id="last-upd">-</b> &nbsp;|&nbsp; <b id="n-blds">-</b> buildings &nbsp;|&nbsp; <b id="n-combos">-</b> combos tracked &nbsp;|&nbsp; &#128257; Refreshes in <b id="refresh-cd">60:00</b></div>
+  <div class="hdr-meta">&#128202; Market prices: <b id="last-upd">-</b> &nbsp;&#124;&nbsp; &#128100; Leads: <b id="leads-ts-hdr">-</b> &nbsp;&#124;&nbsp; <b id="n-blds">-</b> buildings &nbsp;&#124;&nbsp; &#128257; Refreshes in <b id="refresh-cd">60:00</b></div>
 </div>
 <div class="filters">
   <div class="flt"><label>Neighborhood</label><select id="f-hood" onchange="applyF()"><option value="">All Neighborhoods</option></select></div>
@@ -216,6 +216,7 @@ tbody tr:last-child td { border-bottom:none; }
     <button id="l24-btn-week"      onclick="switchPeriod('week')"      style="padding:6px 18px;border-radius:20px;border:2px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;font-size:12px;cursor:pointer">This Week</button>
     <span id="l24-period-label" style="color:#94a3b8;font-size:12px;margin-left:4px"></span>
   </div>
+  <div style="font-size:11px;color:#94a3b8;margin:-12px 0 14px 0">&#128338; Last scraped: <span id="leads-ts-panel">-</span></div>
   <div class="kpis" id="l24-kpi-row"></div>
   <div class="grid2">
     <div class="card">
@@ -250,7 +251,7 @@ var LEAD_MAP = {
 };
 
 var MKT = MDATA.market;
-var HIST = MDATA.history;
+var HIST = MDATA.history || MKT;
 var PAL = ["#00b4a0","#2563eb","#f59e0b","#ef4444","#8b5cf6","#10b981","#f97316","#06b6d4","#ec4899","#84cc16"];
 var filtered = MKT.slice();
 var charts = {};
@@ -375,6 +376,7 @@ function renderHeader() {
     for (var i=0; i<filtered.length; i++) bSet[filtered[i].building] = 1;
     document.getElementById("n-blds").textContent = Object.keys(bSet).length;
     document.getElementById("n-combos").textContent = filtered.length;
+    if (typeof LEADS_TS !== "undefined") { var el = document.getElementById("leads-ts-hdr"); if (el) el.textContent = LEADS_TS; }
 }
 
 function kpi(label, val, sub, cls) {
@@ -572,6 +574,20 @@ function renderTrends() {
     for (var i=0; i<h.length; i++) dSet[h[i].date]=1;
     var dates = Object.keys(dSet).sort();
 
+    if (dates.length < 2) {
+      var note = document.getElementById("tr-no-history");
+      if (!note) {
+        note = document.createElement("div");
+        note.id = "tr-no-history";
+        note.style.cssText = "text-align:center;padding:32px;color:#94a3b8;font-size:13px;background:#f8fafc;border-radius:8px;margin-bottom:16px;border:1px dashed #e2e8f0";
+        note.innerHTML = "&#128200; <b>Trend history is building up.</b><br>Price trends appear once at least 2 days of data have been collected.<br><span style='font-size:11px'>Current snapshot: " + (dates[0] || "—") + " &nbsp;&#8212;&nbsp; comes back daily at 9 AM Dubai time.</span>";
+        var panel = document.getElementById("panel-trends");
+        if (panel) panel.insertBefore(note, panel.firstChild.nextSibling);
+      }
+    } else {
+      var note = document.getElementById("tr-no-history"); if (note) note.style.display = "none";
+    }
+
     function dAvg(date, field) {
         var r = h.filter(function(x){ return x.date===date && x[field]; }).map(function(x){ return x[field]; });
         return r.length ? Math.round(avg(r)) : null;
@@ -710,6 +726,7 @@ var L24 = {
     leads: []
   }
 }
+var LEADS_TS = "2026-03-17 06:13";
 
 function switchPeriod(p) {
   _l24period = p;
@@ -762,16 +779,16 @@ function renderL24Content() {
        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y+" leads";}}}},
        scales:{y:{beginAtZero:true,grid:{color:"#f0f0f0"},ticks:{stepSize:1}},x:{grid:{display:false}}} });
 
-  var h3 = _l24period === "today" ? "Today's Lead Detail — March 13, 2026" :
-            _l24period === "yesterday" ? "Yesterday's Lead Detail — March 12, 2026" :
-            "This Week's Lead Detail — March 9–13, 2026";
+  var h3 = _l24period === "today" ? "Today's Lead Detail — " + (L24.today.label.replace("Today — ","")) :
+            _l24period === "yesterday" ? "Yesterday's Lead Detail — " + (L24.yesterday.label.replace("Yesterday — ","")) :
+            "This Week's Lead Detail — " + (L24.week.label.replace("This Week — ",""));
   document.getElementById("l24-tbl-title").textContent = h3;
 
   var pill = function(s){ return s==="REPLIED"?"<span class=\"pill p-green\">REPLIED</span>":"<span class=\"pill p-amber\">DELIVERED</span>"; };
-  var t = "<table><thead><tr><th>Time</th><th>Agent</th><th>Listing Ref</th><th>Building</th><th>Price</th><th>Status</th></tr></thead><tbody>";
+  var t = "<table><thead><tr><th>Time</th><th>Agent</th><th>Listing Ref</th><th>Status</th></tr></thead><tbody>";
   if (d.leads && d.leads.length) {
     d.leads.forEach(function(l){
-      t += "<tr><td style=\"color:#94a3b8;font-size:11px;white-space:nowrap\">"+l.time+"</td><td style=\"color:#6366f1;font-weight:600\">"+l.agent+"</td><td style=\"color:#0d9488;font-weight:600\">"+l.ref+"</td><td>"+l.building+"</td><td>"+l.price+"</td><td>"+pill(l.status)+"</td></tr>";
+      t += "<tr><td style=\"color:#94a3b8;font-size:11px;white-space:nowrap\">"+l.time+"</td><td style=\"color:#6366f1;font-weight:600\">"+l.agent+"</td><td style=\"color:#0d9488;font-weight:600\">"+(l.ref||"—")+"</td><td>"+pill(l.status)+"</td></tr>";
     });
   } else {
     t += "<tr><td colspan=\"6\" style=\"text-align:center;padding:24px;color:#94a3b8;font-size:13px\">No individual lead data available for this period.</td></tr>";
@@ -789,6 +806,12 @@ function renderLast24h() {
 populateFilters();
 renderAll();
 renderTrends();
+(function() {
+  if (typeof LEADS_TS !== "undefined") {
+    var el = document.getElementById("leads-ts-panel"); if (el) el.textContent = LEADS_TS;
+    var el2 = document.getElementById("leads-ts-hdr"); if (el2) el2.textContent = LEADS_TS;
+  }
+})();
 
 
 // ── AUTO-REFRESH every 60 minutes ───────────────────────────────────────────
