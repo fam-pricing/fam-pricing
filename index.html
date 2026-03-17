@@ -684,49 +684,51 @@ var _l24period = "today";
 var L24 = {
   today: {
     label: "Today — March 17, 2026",
-    total: 1, prev: 6, prevLabel: "vs yesterday",
-    weekData:  [10,15,18,8,6,6,1],
+    total: 2, prev: 6, prevLabel: "vs yesterday",
+    weekData:  [10,15,18,8,6,6,2],
     weekLabels:["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
-    barData:   [6, 1], barLabels: ["Mar 16 (Yesterday)","Mar 17 (Today)"],
+    barData:   [6, 2], barLabels: ["Mar 16 (Yesterday)","Mar 17 (Today)"],
     barColors: ["#e2e8f000", "#00b4a0cc"],
     barHL:     [1],
-    agents: {"Ahmed A.":1, "Sobhi El Bsat":0, "Mona Abdelaziz":0, "Joel V.":0},
+    agents: {"Ahmed A.":2, "Sobhi El Bsat":0, "Mona Abdelaziz":0, "Joel V.":0},
     leads: [
-      {time:"04:58", agent:"Ahmed Elsayed Hussein Abdelmawgoud", ref:"PF-HH-AR-120609", building:"", price:"", status:"DELIVERED"}
+      {time:"07:09", agent:"Ahmed Elsayed Hussein Abdelmawgoud", building:"Canal Residence, Dubai Sports City", price:"9,500", status:"DELIVERED"},
+      {time:"04:58", agent:"Ahmed Elsayed Hussein Abdelmawgoud", building:"Nobles Tower, Business Bay", price:"8,800", status:"DELIVERED"}
     ]
   },
   yesterday: {
     label: "Yesterday — March 16, 2026",
     total: 6, prev: 6, prevLabel: "vs Mar 15",
-    weekData:  [10,15,18,8,6,6,1],
+    weekData:  [10,15,18,8,6,6,2],
     weekLabels:["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
     barData:   [6, 6], barLabels: ["Mar 15","Mar 16 (Yesterday)"],
     barColors: ["#e2e8f0cc","#2563ebcc"],
     barHL:     [1],
     agents: {"Ahmed A.":1, "Sobhi El Bsat":3, "Mona Abdelaziz":2, "Joel V.":0},
     leads: [
-      {time:"15:11", agent:"Mona Abdelaziz", ref:"PF-HH-AR-112088", building:"", price:"", status:"REPLIED"},
-      {time:"13:02", agent:"Sobhi El Bsat", ref:"PF-HH-AR-80083", building:"", price:"", status:"REPLIED"},
-      {time:"11:41", agent:"Mona Abdelaziz", ref:"PF-HH-AR-50489", building:"", price:"", status:"REPLIED"},
-      {time:"09:57", agent:"Sobhi El Bsat", ref:"PF-HH-AR-121845", building:"", price:"", status:"REPLIED"},
-      {time:"09:55", agent:"Ahmed Elsayed Hussein Abdelmawgoud", ref:"PF-HH-AR-120609", building:"", price:"", status:"REPLIED"},
-      {time:"00:23", agent:"Sobhi El Bsat", ref:"PF-HH-AR-121845", building:"", price:"", status:"REPLIED"}
+      {time:"15:11", agent:"Mona Abdelaziz",                       building:"Grande, Opera District",             price:"16,500", status:"REPLIED"},
+      {time:"13:02", agent:"Sobhi El Bsat",                        building:"Imperial Avenue, Downtown Dubai",    price:"26,500", status:"REPLIED"},
+      {time:"11:41", agent:"Mona Abdelaziz",                       building:"Rimal 2, Dubai Marina",              price:"7,999",  status:"REPLIED"},
+      {time:"09:57", agent:"Sobhi El Bsat",                        building:"DAMAC Maison Prive, Business Bay",   price:"7,700",  status:"REPLIED"},
+      {time:"09:55", agent:"Ahmed Elsayed Hussein Abdelmawgoud",   building:"Nobles Tower, Business Bay",         price:"8,800",  status:"REPLIED"},
+      {time:"00:23", agent:"Sobhi El Bsat",                        building:"DAMAC Maison Prive, Business Bay",   price:"7,700",  status:"REPLIED"}
     ]
   },
   week: {
     label: "This Week — Mar 11–17, 2026",
-    total: 64, prev: null, prevLabel: "7-day total",
-    weekData:  [10,15,18,8,6,6,1],
+    total: 65, prev: null, prevLabel: "7-day total",
+    weekData:  [10,15,18,8,6,6,2],
     weekLabels:["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
-    barData:   [10,15,18,8,6,6,1],
+    barData:   [10,15,18,8,6,6,2],
     barLabels: ["Mar 11","Mar 12","Mar 13","Mar 14","Mar 15","Mar 16","Mar 17"],
     barColors: ["#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#e2e8f0cc","#00b4a0cc"],
     barHL:     [6],
-    agents: {"Ahmed A.":7, "Sobhi El Bsat":22, "Mona Abdelaziz":27, "Joel V.":8},
+    agents: {"Ahmed A.":8, "Sobhi El Bsat":22, "Mona Abdelaziz":27, "Joel V.":8},
     leads: []
   }
 }
-var LEADS_TS = "2026-03-17 06:13";
+
+var LEADS_TS = "2026-03-17 07:38";
 
 function switchPeriod(p) {
   _l24period = p;
@@ -785,10 +787,10 @@ function renderL24Content() {
   document.getElementById("l24-tbl-title").textContent = h3;
 
   var pill = function(s){ return s==="REPLIED"?"<span class=\"pill p-green\">REPLIED</span>":"<span class=\"pill p-amber\">DELIVERED</span>"; };
-  var t = "<table><thead><tr><th>Time</th><th>Agent</th><th>Listing Ref</th><th>Status</th></tr></thead><tbody>";
+  var t = "<table><thead><tr><th>Time</th><th>Agent</th><th>Building</th><th>Price (AED/mo)</th><th>Status</th></tr></thead><tbody>";
   if (d.leads && d.leads.length) {
     d.leads.forEach(function(l){
-      t += "<tr><td style=\"color:#94a3b8;font-size:11px;white-space:nowrap\">"+l.time+"</td><td style=\"color:#6366f1;font-weight:600\">"+l.agent+"</td><td style=\"color:#0d9488;font-weight:600\">"+(l.ref||"—")+"</td><td>"+pill(l.status)+"</td></tr>";
+      t += "<tr><td style=\"color:#94a3b8;font-size:11px;white-space:nowrap\">"+l.time+"</td><td style=\"color:#6366f1;font-weight:600\">"+l.agent+"</td><td>"+(l.building||"—")+"</td><td style=\"color:#0d9488;font-weight:600\">"+(l.price ? "AED "+(l.price) : "—")+"</td><td>"+pill(l.status)+"</td></tr>";
     });
   } else {
     t += "<tr><td colspan=\"6\" style=\"text-align:center;padding:24px;color:#94a3b8;font-size:13px\">No individual lead data available for this period.</td></tr>";
