@@ -188,7 +188,7 @@ tbody tr:last-child td { border-bottom:none; }
     <div class="card"><div class="card-title">Published Price vs Market Avg (Top 20)</div><div class="chart-box-lg"><canvas id="ch-pub-vs"></canvas></div></div>
     <div class="card"><div class="card-title">% vs Market Avg</div><div class="chart-box-lg"><canvas id="ch-pub-diff"></canvas></div></div>
   </div>
-  <div class="tbl-wrap"><div class="tbl-top"><h3>Published Listings Detail</h3></div><div id="pub-tbl"></div></div>
+  <div class="tbl-wrap"><div class="tbl-top"><h3>Published Listings Detail</h3><span id="pub-search-count" style="font-size:11px;color:#94a3b8;font-weight:500;margin-left:8px"></span><div style="flex:1"></div><div style="position:relative;display:flex;align-items:center"><input class="tbl-search" id="pub-q" placeholder="Search building…" oninput="pubSearchTerm=this.value.trim().toLowerCase();document.getElementById('pub-clear').style.display=this.value?'flex':'none';renderPublished();" type="text" style="padding-right:28px"><button id="pub-clear" onclick="document.getElementById('pub-q').value='';pubSearchTerm='';this.style.display='none';renderPublished();" style="display:none;position:absolute;right:7px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;line-height:1;padding:0">✕</button></div></div><div id="pub-tbl"></div></div>
 </div>
 <div class="panel" id="panel-trends">
   <div class="trend-bar">
@@ -255,6 +255,7 @@ var LEAD_MAP = {
 var MKT = MDATA.market;
 var HIST = (typeof MDATA_HIST !== "undefined" && MDATA_HIST.length) ? MDATA_HIST : MKT;
 var PAL = ["#00b4a0","#2563eb","#f59e0b","#ef4444","#8b5cf6","#10b981","#f97316","#06b6d4","#ec4899","#84cc16"];
+var pubSearchTerm = '';
 var filtered = MKT.slice();
 var charts = {};
 var sortC = "building";
@@ -546,6 +547,9 @@ function renderPublished() {
          scales:{x:{grid:{color:"#f0f0f0"},ticks:{callback:function(v){return v+"%";}}},y:{grid:{display:false},ticks:{font:{size:10}}}} });
 
     var rows = pub.slice().sort(function(a,b){ return a.building.localeCompare(b.building); });
+    if (pubSearchTerm) rows = rows.filter(function(r){ return r.building.toLowerCase().indexOf(pubSearchTerm) !== -1; });
+    var countEl = document.getElementById('pub-search-count');
+    if (countEl) countEl.textContent = pubSearchTerm ? rows.length + ' result' + (rows.length !== 1 ? 's' : '') : '';
     var t = "<table><thead><tr><th>Building</th><th>Area</th><th>Bed</th><th>Published</th><th>Market Avg</th><th>vs Market</th><th>Mkt Low</th><th>Mkt High</th><th>Leads (37d)</th><th>Agent</th></tr></thead><tbody>";
     for (var i=0; i<rows.length; i++) {
         var r = rows[i];
