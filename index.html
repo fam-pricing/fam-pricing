@@ -146,7 +146,10 @@ tbody tr:last-child td { border-bottom:none; }
   <div style="display:flex;align-items:center">
     <div class="logo">f<span class="logo-dot">a</span>m Living<span class="badge">Pricing Intelligence</span></div>
   </div>
-  <div class="hdr-meta">&#128202; Market prices: <b id="last-upd">-</b> &nbsp;&#124;&nbsp; &#128268; PF API: <b id="api-ts">-</b> &nbsp;&#124;&nbsp; <b id="n-blds">-</b> buildings</div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="hdr-meta">&#128202; Market prices: <b id="last-upd">-</b> &nbsp;&#124;&nbsp; &#128268; PF API: <b id="api-ts">-</b> &nbsp;&#124;&nbsp; <b id="n-blds">-</b> buildings</div>
+    <button id="sync-btn" onclick="syncFromAPI()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.3px;white-space:nowrap" title="Fetch fresh data from PF API">&#9651; Sync</button>
+  </div>
 </div>
 <div class="filters">
   <div class="flt"><label>Neighborhood</label><select id="f-hood" onchange="applyF()"><option value="">All Neighborhoods</option></select></div>
@@ -370,6 +373,108 @@ function renderAll() {
     renderTable();
 }
 
+
+// ── fam-api Vercel backend ──────────────────────────────────────────────────
+var FAM_API = 'https://fam-api-fam-pricing.vercel.app';   // ← update after Vercel deploy
+
+async function syncFromAPI() {
+  var btn = document.getElementById('sync-btn');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.innerHTML = '&#9651; Syncing&hellip;';
+  btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#64748b;';
+  try {
+    var r = await fetch(FAM_API + '/api/sync');
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Sync failed');
+
+    // Store live data
+    window._LIVE_LISTING_TIERS = data.listing_tiers;
+    window._LIVE_PORTAL_PRICES = data.portal_prices;
+
+    // Rebuild listing ref map from live tiers
+    var m = {}, tiers = data.listing_tiers;
+    for (var i = 0; i < tiers.length; i++) {
+      var t = tiers[i];
+      if (!t.price) continue;
+      var k = t.building + '|' + t.bed;
+      if (!m[k] || t.price < m[k].price) m[k] = { url: t.listing_url || '', price: t.price };
+    }
+    window._LIVE_REF_MAP = {};
+    for (var k in m) if (m[k].url) window._LIVE_REF_MAP[k] = m[k].url;
+
+    // Update header timestamp
+    var apiTsEl = document.getElementById('api-ts');
+    if (apiTsEl) apiTsEl.textContent = data.timestamp;
+
+    // Re-render published listings with live data
+    renderPublished();
+
+    btn.innerHTML = '&#10003; Synced';
+    btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#10b981;';
+    setTimeout(function() {
+      btn.innerHTML = '&#9651; Sync';
+      btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:rgba(255,255,255,.15);';
+      btn.disabled = false;
+    }, 3000);
+  } catch (err) {
+    console.error('[sync]', err);
+    btn.innerHTML = '&#10007; Failed';
+    btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#ef4444;';
+    setTimeout(function() {
+      btn.innerHTML = '&#9651; Sync';
+      btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:rgba(255,255,255,.15);';
+      btn.disabled = false;
+    }, 3000);
+  }
+}
+
+async function publishPrice(btn) {
+  var ref   = btn.getAttribute('data-ref');
+  var row   = btn.parentNode.parentNode;
+  var inp   = row.querySelector('.price-inp[data-ref="' + ref + '"]');
+  var price = inp ? inp.value.replace(/,/g, '').trim() : '';
+  if (!price || isNaN(parseInt(price))) {
+    if (inp) { inp.style.borderColor = '#ef4444'; inp.focus(); }
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    var r = await fetch(FAM_API + '/api/update-price', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ref: ref, price: parseInt(price) })
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.detail || data.error || 'Update failed');
+
+    btn.textContent = '✓ Published';
+    btn.style.background = '#10b981';
+    if (inp) inp.style.borderColor = '#10b981';
+
+    // Ask to sync
+    setTimeout(function() {
+      if (confirm('Price published to PF! ✓
+Sync the dashboard now to see the updated data?')) syncFromAPI();
+      btn.textContent = 'Publish ↑';
+      btn.style.background = '#0d9488';
+      btn.disabled = false;
+    }, 800);
+  } catch (err) {
+    console.error('[publishPrice]', err);
+    btn.textContent = '✗ Error';
+    btn.style.background = '#ef4444';
+    if (inp) inp.style.borderColor = '#ef4444';
+    alert('Failed to publish: ' + err.message);
+    setTimeout(function() {
+      btn.textContent = 'Publish ↑';
+      btn.style.background = '#0d9488';
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
 function renderHeader() {
     var dates = {};
     for (var i=0; i<MKT.length; i++) dates[MKT[i].date] = 1;
@@ -581,7 +686,7 @@ function renderPublished() {
     if (pubSearchTerm) rows = rows.filter(function(r){ return r.building.toLowerCase().indexOf(pubSearchTerm) !== -1; });
     var countEl = document.getElementById('pub-search-count');
     if (countEl) countEl.textContent = pubSearchTerm ? rows.length + ' result' + (rows.length !== 1 ? 's' : '') : '';
-    var t = "<table><thead><tr><th>Building</th><th>Area</th><th>Bed</th><th>Published</th><th>Market Avg</th><th>vs Market</th><th>Mkt Low</th><th>Mkt High</th><th>PF Tier</th></tr></thead><tbody>";
+    var t = "<table><thead><tr><th>Building</th><th>Area</th><th>Bed</th><th>Published</th><th>New Price</th><th>Publish</th><th>Market Avg</th><th>vs Market</th><th>Mkt Low</th><th>Mkt High</th><th>PF Tier</th></tr></thead><tbody>";
     for (var i=0; i<rows.length; i++) {
         var r = rows[i];
         var diff2 = r.pf_avg ? (r.pub_price-r.pf_avg)/r.pf_avg*100 : null;
@@ -594,15 +699,45 @@ function renderPublished() {
         else if (tierVal === "featured") tierCell = "<td><span style=\"background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9670; Featured</span></td>";
         else tierCell = "<td><span style=\"background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;white-space:nowrap\">&#9679; Standard</span></td>";
         var tierKey2 = r.building + "|" + r.bed_type;
-        var listingUrl = _LISTING_REF_MAP[tierKey2] || null;
+        // Use live data from Sync if available, else fall back to injected LISTING_TIERS
+        var liveTiers = window._LIVE_LISTING_TIERS;
+        var liveTier = null;
+        if (liveTiers) {
+          for (var li = 0; li < liveTiers.length; li++) {
+            if (liveTiers[li].building === r.building && liveTiers[li].bed === r.bed_type) {
+              liveTier = liveTiers[li]; break;
+            }
+          }
+        }
+        if (liveTier) {
+          r = Object.assign({}, r, { pub_price: window._LIVE_PORTAL_PRICES[tierKey2] || r.pub_price });
+        }
+        var activeRefMap = (window._LIVE_REF_MAP && Object.keys(window._LIVE_REF_MAP).length) ? window._LIVE_REF_MAP : _LISTING_REF_MAP;
+        var listingUrl = activeRefMap[tierKey2] || null;
+        // Find ref for this row (for publish button)
+        var rowRef = liveTier ? liveTier.ref : '';
+        if (!rowRef) {
+          var allTiers = typeof LISTING_TIERS !== 'undefined' ? LISTING_TIERS : [];
+          for (var li2 = 0; li2 < allTiers.length; li2++) {
+            if (allTiers[li2].building === r.building && allTiers[li2].bed === r.bed_type) { rowRef = allTiers[li2].ref; break; }
+          }
+        }
         var bldgCell = r.pf_url
           ? "<a href=\""+r.pf_url+"\" target=\"_blank\" style=\"color:#1e293b;font-weight:600;text-decoration:none;border-bottom:1px dashed #94a3b8\" title=\"View market listings on Property Finder\">"+r.building+" ↗</a>"
           : r.building;
         var pubLink = listingUrl
           ? "<a href=\""+listingUrl+"\" target=\"_blank\" style=\"color:#0d9488;font-weight:700;text-decoration:none;border-bottom:1px dashed #0d9488\" title=\"View this listing on Property Finder\">"+fmtAED(r.pub_price)+" ↗</a>"
           : "<span style=\"color:#0d9488;font-weight:700\">"+fmtAED(r.pub_price)+"</span>";
+        var priceInp = rowRef
+          ? '<input type="number" class="price-inp" data-ref="'+rowRef+'" placeholder="AED" style="width:80px;padding:3px 5px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;text-align:right">'
+          : '<span style="color:#94a3b8;font-size:11px">—</span>';
+        var pubBtn = rowRef
+          ? '<button class="pub-btn" data-ref="'+rowRef+'" onclick="publishPrice(this)" style="padding:3px 8px;background:#0d9488;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">Publish &#8593;</button>'
+          : '';
         t += "<tr><td>"+bldgCell+"</td><td>"+r.neighborhood+"</td><td><b>"+r.bed_type+"</b></td>" +
              "<td>"+pubLink+"</td>" +
+             "<td style='white-space:nowrap'>"+priceInp+"</td>" +
+             "<td>"+pubBtn+"</td>" +
              "<td>"+fmtAED(r.pf_avg)+"</td><td>"+diffStr+"</td>" +
              "<td>"+fmtAED(r.pf_low)+"</td><td>"+fmtAED(r.pf_high)+"</td>" + tierCell + "</tr>";
     }
