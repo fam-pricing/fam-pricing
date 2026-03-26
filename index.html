@@ -377,6 +377,38 @@ function renderAll() {
 // ── fam-api Vercel backend ──────────────────────────────────────────────────
 var FAM_API = 'https://fam-pricing.vercel.app';
 
+// ── Auto-reload when new data is pushed ───────────────────────────────────────
+(function() {
+  var LOADED_VERSION = null;
+
+  function checkVersion() {
+    fetch('version.txt?_=' + Date.now(), { cache: 'no-store' })
+      .then(function(r) { return r.text(); })
+      .then(function(v) {
+        v = v.trim();
+        if (!LOADED_VERSION) { LOADED_VERSION = v; return; }
+        if (v !== LOADED_VERSION) {
+          // New data available — show banner
+          var b = document.getElementById('update-banner');
+          if (!b) {
+            b = document.createElement('div');
+            b.id = 'update-banner';
+            b.style.cssText = 'position:fixed;bottom:18px;right:18px;background:#1e293b;color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;gap:9px';
+            b.innerHTML = '<span>&#128260;</span> New market data available';
+            b.onclick = function() { window.location.reload(true); };
+            document.body.appendChild(b);
+          }
+        }
+      })
+      .catch(function(){});
+  }
+
+  // Check on load after 2s, then every 5 minutes
+  setTimeout(checkVersion, 2000);
+  setInterval(checkVersion, 5 * 60 * 1000);
+})();
+
+
 async function syncFromAPI() {
   var btn = document.getElementById('sync-btn');
   if (!btn || btn.disabled) return;
