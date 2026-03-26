@@ -455,8 +455,7 @@ async function publishPrice(btn) {
 
     // Ask to sync
     setTimeout(function() {
-      if (confirm('Price published to PF! ✓
-Sync the dashboard now to see the updated data?')) syncFromAPI();
+      if (confirm('Price published to PF! ✓  Sync the dashboard now to see the updated data?')) syncFromAPI();
       btn.textContent = 'Publish ↑';
       btn.style.background = '#0d9488';
       btn.disabled = false;
