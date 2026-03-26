@@ -750,12 +750,7 @@ function renderPublished() {
         var pc = diff2===null?"p-gray":diff2<-20?"p-red":diff2<0?"p-amber":"p-green";
         var diffStr = diff2!==null ? "<span class=\"pill "+pc+"\">"+(diff2>=0?"+":"")+diff2.toFixed(1)+"%</span>" : "-";
         var tierKey = r.building + "|" + r.bed_type;
-        var tierVal = _TIER_MAP[tierKey] || "standard";
-        var tierCell;
-        if (tierVal === "premium")  tierCell = "<td><span style=\"background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9733; Premium</span></td>";
-        else if (tierVal === "featured") tierCell = "<td><span style=\"background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9670; Featured</span></td>";
-        else tierCell = "<td><span style=\"background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;white-space:nowrap\">&#9679; Standard</span></td>";
-        var tierKey2 = r.building + "|" + r.bed_type;
+        var tierKey2 = tierKey;
         // Use live data from Sync if available, else fall back to injected LISTING_TIERS
         var liveTiers = window._LIVE_LISTING_TIERS;
         var liveTier = null;
@@ -769,6 +764,12 @@ function renderPublished() {
         if (liveTier) {
           r = Object.assign({}, r, { tier: liveTier.tier });
         }
+        // tierVal uses live tier first, then falls back to baked _TIER_MAP
+        var tierVal = (liveTier ? liveTier.tier : null) || _TIER_MAP[tierKey] || "standard";
+        var tierCell;
+        if (tierVal === "premium")  tierCell = "<td><span style=\"background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9733; Premium</span></td>";
+        else if (tierVal === "featured") tierCell = "<td><span style=\"background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9670; Featured</span></td>";
+        else tierCell = "<td><span style=\"background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;white-space:nowrap\">&#9679; Standard</span></td>";
         var activeRefMap = (window._LIVE_REF_MAP && Object.keys(window._LIVE_REF_MAP).length) ? window._LIVE_REF_MAP : _LISTING_REF_MAP;
         var listingUrl = activeRefMap[tierKey2] || null;
         // Find ref for this row (for publish button)
