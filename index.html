@@ -146,7 +146,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div style="display:flex;align-items:center">
     <div class="logo">f<span class="logo-dot">a</span>m Living<span class="badge">Pricing Intelligence</span></div>
   </div>
-  <div class="hdr-meta">&#128202; Market prices: <b id="last-upd">-</b> &nbsp;&#124;&nbsp; <b id="n-blds">-</b> buildings &nbsp;&#124;&nbsp; &#128257; Refreshes in <b id="refresh-cd">60:00</b></div>
+  <div class="hdr-meta">&#128202; Market prices: <b id="last-upd">-</b> &nbsp;&#124;&nbsp; &#128268; PF API: <b id="api-ts">-</b> &nbsp;&#124;&nbsp; <b id="n-blds">-</b> buildings</div>
 </div>
 <div class="filters">
   <div class="flt"><label>Neighborhood</label><select id="f-hood" onchange="applyF()"><option value="">All Neighborhoods</option></select></div>
@@ -378,6 +378,11 @@ function renderHeader() {
     document.getElementById("n-blds").textContent = Object.keys(bSet).length;
     var nCombosEl = document.getElementById("n-combos"); if (nCombosEl) nCombosEl.textContent = filtered.length;
     if (typeof LEADS_TS !== "undefined") { var el = document.getElementById("leads-ts-hdr"); if (el) el.textContent = LEADS_TS; }
+    var apiTsEl = document.getElementById("api-ts");
+    if (apiTsEl) {
+      var tsVal = typeof TIERS_TS !== "undefined" ? TIERS_TS.replace("PF Tiers updated: ", "") : (typeof LEADS_TS !== "undefined" ? LEADS_TS.replace("Leads updated: ", "") : "-");
+      apiTsEl.textContent = tsVal;
+    }
 }
 
 function kpi(label, val, sub, cls) {
@@ -814,14 +819,6 @@ renderTrends();
     } else {
       setTimeout(update, tick);
     }
-  }
-
-  // Show loaded time in header
-  var now = new Date();
-  var loadedEl = document.getElementById("last-upd");
-  if (loadedEl) {
-    var h = now.getHours(), mn = now.getMinutes();
-    loadedEl.textContent = (h < 10 ? "0" : "") + h + ":" + (mn < 10 ? "0" : "") + mn;
   }
 
   setTimeout(update, tick);
