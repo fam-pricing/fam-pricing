@@ -161,6 +161,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="tab tab-star" id="tab-btn-published" onclick="showTab('published')">Published Listings</div>
   <div class="tab" id="tab-btn-trends" onclick="showTab('trends')">Price Trends</div>
   <div class="tab" id="tab-btn-table" onclick="showTab('table')">Full Data Table</div>
+  <div class="tab tab-star" id="tab-btn-last24h" onclick="showTab('last24h')">&#128202; Leads</div>
 </div>
 <div class="panel active" id="panel-overview">
   <div class="kpis" id="kpi-row"></div>
@@ -204,6 +205,32 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="tbl-wrap">
     <div class="tbl-top"><h3 id="tbl-count">All Combos</h3><input class="tbl-search" id="tbl-q" placeholder="Search..." oninput="renderTable()" type="text"></div>
     <div id="full-tbl"></div>
+  </div>
+</div>
+
+<div class="panel" id="panel-last24h">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <span style="font-weight:600;color:#374151;font-size:14px">View period:</span>
+    <button id="l24-btn-today"     onclick="switchPeriod('today')"     style="padding:6px 18px;border-radius:20px;border:2px solid #00b4a0;background:#00b4a0;color:#fff;font-weight:600;font-size:12px;cursor:pointer">Today</button>
+    <button id="l24-btn-yesterday" onclick="switchPeriod('yesterday')" style="padding:6px 18px;border-radius:20px;border:2px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;font-size:12px;cursor:pointer">Yesterday</button>
+    <button id="l24-btn-week"      onclick="switchPeriod('week')"      style="padding:6px 18px;border-radius:20px;border:2px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;font-size:12px;cursor:pointer">This Week</button>
+    <span id="l24-period-label" style="color:#94a3b8;font-size:12px;margin-left:4px"></span>
+  </div>
+  <div style="font-size:11px;color:#94a3b8;margin:-12px 0 14px 0">&#128338; Last scraped: <span id="leads-ts-panel">-</span></div>
+  <div class="kpis" id="l24-kpi-row"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" id="l24-chart1-title">Comparison</div>
+      <div class="chart-box"><canvas id="ch-l24-bar"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title" id="l24-chart2-title">Lead Trend</div>
+      <div class="chart-box"><canvas id="ch-l24-trend"></canvas></div>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl-top"><h3 id="l24-tbl-title">Lead Detail</h3></div>
+    <div id="l24-tbl"></div>
   </div>
 </div>
 
@@ -263,11 +290,12 @@ function baseOpts(horiz) {
 }
 
 function showTab(name) {
-    var tabs = ["overview","market","published","trends","table"];
+    if (name === "last24h") { setTimeout(renderLast24h, 50); }
+    var tabs = ["overview","market","published","trends","table","last24h"];
     for (var i=0; i<tabs.length; i++) {
         var btn = document.getElementById("tab-btn-" + tabs[i]);
         var pnl = document.getElementById("panel-" + tabs[i]);
-        var starCls = (tabs[i]==="published") ? " tab-star" : "";
+        var starCls = (tabs[i]==="published"||tabs[i]==="last24h") ? " tab-star" : "";
         if (btn) btn.className = tabs[i] === name ? "tab active"+starCls : "tab"+starCls;
         if (pnl) pnl.className = tabs[i] === name ? "panel active" : "panel";
     }
@@ -667,12 +695,94 @@ function setSort(col) {
     renderTable();
 }
 
+var _l24done = false;
+var _l24period = "today";
 
+function switchPeriod(p) {
+  _l24period = p;
+  ["today","yesterday","week"].forEach(function(id) {
+    var btn = document.getElementById("l24-btn-" + id);
+    if (!btn) return;
+    if (id === p) {
+      btn.style.background = "#00b4a0"; btn.style.color = "#fff";
+      btn.style.borderColor = "#00b4a0";
+    } else {
+      btn.style.background = "#fff"; btn.style.color = "#64748b";
+      btn.style.borderColor = "#e2e8f0";
+    }
+  });
+  renderL24Content();
+}
+
+function renderL24Content() {
+  var d = L24[_l24period];
+  var pct = d.prev !== null ? Math.round((d.total - d.prev) / d.prev * 100) : null;
+  var pctStr = pct !== null ? (pct >= 0 ? "+" : "") + pct + "% " + d.prevLabel : d.prevLabel;
+  var pctCls = pct === null ? "c-teal" : pct < 0 ? "c-red" : "c-green";
+
+  document.getElementById("l24-period-label").textContent = d.label;
+  document.getElementById("l24-kpi-row").innerHTML =
+    kpi("Leads", d.total, pctStr, pctCls) +
+    kpi("Ahmed A.",        d.agents["Ahmed A."],        "leads this period", d.agents["Ahmed A."]>0?"c-teal":"c-amber") +
+    kpi("Sobhi El Bsat",   d.agents["Sobhi El Bsat"],   "leads this period", d.agents["Sobhi El Bsat"]>0?"c-teal":"c-amber") +
+    kpi("Mona Abdelaziz",  d.agents["Mona Abdelaziz"],  "leads this period", d.agents["Mona Abdelaziz"]>0?"c-teal":"c-amber") +
+    kpi("Joel V.",         d.agents["Joel V."],          "leads this period", d.agents["Joel V."]>0?"c-teal":"c-amber");
+
+  document.getElementById("l24-chart1-title").textContent = _l24period === "week" ? "Daily Breakdown" : "Day Comparison";
+  document.getElementById("l24-chart2-title").textContent = "7-Day Trend";
+
+  mkChart("ch-l24-bar", "bar", {
+    labels: d.barLabels,
+    datasets: [{ label:"Leads", data:d.barData, backgroundColor:d.barColors, borderRadius:6 }]
+  }, { responsive:true, maintainAspectRatio:false,
+       plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y+" leads";}}}},
+       scales:{y:{beginAtZero:true,grid:{color:"#f0f0f0"},ticks:{stepSize:1}},x:{grid:{display:false}}} });
+
+  mkChart("ch-l24-trend", "line", {
+    labels: d.weekLabels,
+    datasets:[{ label:"Leads", data:d.weekData, borderColor:"#00b4a0", backgroundColor:"#00b4a020",
+                fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:"#00b4a0" }]
+  }, { responsive:true, maintainAspectRatio:false,
+       plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y+" leads";}}}},
+       scales:{y:{beginAtZero:true,grid:{color:"#f0f0f0"},ticks:{stepSize:1}},x:{grid:{display:false}}} });
+
+  var h3 = _l24period === "today" ? "Today's Lead Detail — " + (L24.today.label.replace("Today — ","")) :
+            _l24period === "yesterday" ? "Yesterday's Lead Detail — " + (L24.yesterday.label.replace("Yesterday — ","")) :
+            "This Week's Lead Detail — " + (L24.week.label.replace("This Week — ",""));
+  document.getElementById("l24-tbl-title").textContent = h3;
+
+  var pill = function(s){ return s==="REPLIED"?"<span class=\"pill p-green\">REPLIED</span>":"<span class=\"pill p-amber\">DELIVERED</span>"; };
+  var t = "<table><thead><tr><th>Time</th><th>Agent</th><th>Building</th><th>Price (AED/mo)</th><th>Status</th></tr></thead><tbody>";
+  if (d.leads && d.leads.length) {
+    d.leads.forEach(function(l){
+      t += "<tr><td style=\"color:#94a3b8;font-size:11px;white-space:nowrap\">"+l.time+"</td><td style=\"color:#6366f1;font-weight:600\">"+l.agent+"</td><td>"+(l.building||"—")+"</td><td style=\"color:#0d9488;font-weight:600\">"+(l.price ? "AED "+(l.price) : "—")+"</td><td>"+pill(l.status)+"</td></tr>";
+    });
+  } else {
+    t += "<tr><td colspan=\"6\" style=\"text-align:center;padding:24px;color:#94a3b8;font-size:13px\">No individual lead data available for this period.</td></tr>";
+  }
+  t += "</tbody></table>";
+  document.getElementById("l24-tbl").innerHTML = t;
+}
+
+function renderLast24h() {
+  if (_l24done) return; _l24done = true;
+  renderL24Content();
+  if (typeof LEADS_TS !== "undefined") {
+    var el = document.getElementById("leads-ts-panel"); if (el) el.textContent = LEADS_TS;
+    var el2 = document.getElementById("leads-ts-hdr"); if (el2) el2.textContent = LEADS_TS;
+  }
+}
 
 // INIT
 populateFilters();
 renderAll();
 renderTrends();
+(function() {
+  if (typeof LEADS_TS !== "undefined") {
+    var el = document.getElementById("leads-ts-panel"); if (el) el.textContent = LEADS_TS;
+    var el2 = document.getElementById("leads-ts-hdr"); if (el2) el2.textContent = LEADS_TS;
+  }
+})();
 
 
 
