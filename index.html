@@ -481,6 +481,8 @@ async function doLogin() {
     var hdrUser = document.getElementById('hdr-user');
     if (hdrUser) hdrUser.textContent = data.username + (data.role === 'admin' ? ' ★' : '');
     renderPublished(); // re-render to show/hide publish controls based on role
+    // Auto-sync immediately after login so prices load without extra click
+    setTimeout(syncFromAPI, 400);
   } catch(err) {
     errEl.style.display = ''; errEl.textContent = err.message || 'Invalid credentials.';
   } finally {
@@ -550,9 +552,26 @@ async function syncFromAPI() {
       if (L24.yesterday.barData && L24.yesterday.barData.length >= 2) {
         L24.yesterday.barData[L24.yesterday.barData.length - 1] = data.leads_yesterday;
       }
-      // Re-render leads tab
-      if (typeof renderLast24h === 'function') renderLast24h();
+      // Also update the WEEK view so it stays consistent with today/yesterday
+      if (L24.week) {
+        // Last element of week barData/weekData is today
+        if (L24.week.barData && L24.week.barData.length > 0) {
+          L24.week.barData[L24.week.barData.length - 1] = data.leads_today;
+        }
+        if (L24.week.weekData && L24.week.weekData.length > 0) {
+          L24.week.weekData[L24.week.weekData.length - 1] = data.leads_today;
+        }
+        // Recalculate week total
+        if (L24.week.weekData) {
+          L24.week.total = L24.week.weekData.reduce(function(a, b){ return a + b; }, 0);
+        }
+      }
+      // Re-render leads tab — bypass the _l24done guard by calling renderL24Content directly
       if (typeof renderL24Content === 'function') renderL24Content();
+      // Update leads-ts labels to show this was just synced
+      var syncTs = 'Live — synced ' + data.timestamp;
+      var el1 = document.getElementById('leads-ts-panel'); if (el1) el1.textContent = syncTs;
+      var el2 = document.getElementById('leads-ts-hdr');   if (el2) el2.textContent = syncTs;
     }
 
     // JWT already in sessionStorage
