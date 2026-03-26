@@ -142,13 +142,34 @@ tbody tr:last-child td { border-bottom:none; }
 </style>
 </head>
 <body>
+<!-- ── Login overlay ──────────────────────────────────────────────────────── -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);display:flex;align-items:center;justify-content:center">
+  <div style="background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:40px 44px;width:360px;box-shadow:0 24px 64px rgba(0,0,0,.5)">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px">f<span style="color:#00b4a0">a</span>m Living</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:4px;letter-spacing:.5px">PRICING INTELLIGENCE</div>
+    </div>
+    <div id="login-err" style="display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;padding:8px 12px;font-size:13px;margin-bottom:14px"></div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:12px;color:#94a3b8;font-weight:600;margin-bottom:5px;letter-spacing:.3px">USERNAME</label>
+      <input id="li-user" type="text" autocomplete="username" placeholder="Enter username" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#0f172a;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:14px;outline:none" onkeydown="if(event.key==='Enter')document.getElementById('li-pass').focus()">
+    </div>
+    <div style="margin-bottom:22px">
+      <label style="display:block;font-size:12px;color:#94a3b8;font-weight:600;margin-bottom:5px;letter-spacing:.3px">PASSWORD</label>
+      <input id="li-pass" type="password" autocomplete="current-password" placeholder="Enter password" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#0f172a;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:14px;outline:none" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" id="li-btn" style="width:100%;padding:11px;background:#00b4a0;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px">Sign In</button>
+  </div>
+</div>
 <div class="hdr">
   <div style="display:flex;align-items:center">
     <div class="logo">f<span class="logo-dot">a</span>m Living<span class="badge">Pricing Intelligence</span></div>
   </div>
   <div style="display:flex;align-items:center;gap:14px">
     <div class="hdr-meta">&#128202; Market prices: <b id="last-upd">-</b> &nbsp;&#124;&nbsp; &#128268; PF API: <b id="api-ts">-</b> &nbsp;&#124;&nbsp; <b id="n-blds">-</b> buildings</div>
+    <span id="hdr-user" style="font-size:12px;color:rgba(255,255,255,.7);font-weight:500"></span>
     <button id="sync-btn" onclick="syncFromAPI()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.3px;white-space:nowrap" title="Fetch fresh data from PF API">&#9651; Sync</button>
+    <button onclick="doLogout()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 11px;font-size:11px;cursor:pointer;letter-spacing:.3px" title="Sign out">&#10006; Logout</button>
   </div>
 </div>
 <div class="filters">
@@ -410,23 +431,88 @@ var FAM_API = 'https://fam-pricing.vercel.app';
 })();
 
 
+// ── JWT Auth ─────────────────────────────────────────────────────────────────
+function initAuth() {
+  var jwt = sessionStorage.getItem('fam_jwt');
+  var overlay = document.getElementById('login-overlay');
+  if (!jwt) {
+    if (overlay) overlay.style.display = 'flex';
+    return;
+  }
+  // Validate expiry client-side
+  try {
+    var payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    if (payload.exp && payload.exp < Math.floor(Date.now()/1000)) {
+      sessionStorage.removeItem('fam_jwt');
+      sessionStorage.removeItem('fam_role');
+      sessionStorage.removeItem('fam_username');
+      if (overlay) overlay.style.display = 'flex';
+      return;
+    }
+    if (overlay) overlay.style.display = 'none';
+    var hdrUser = document.getElementById('hdr-user');
+    if (hdrUser) hdrUser.textContent = payload.username + (payload.role === 'admin' ? ' ★' : '');
+  } catch(e) {
+    sessionStorage.removeItem('fam_jwt');
+    if (overlay) overlay.style.display = 'flex';
+  }
+}
+
+async function doLogin() {
+  var btn = document.getElementById('li-btn');
+  var errEl = document.getElementById('login-err');
+  var user = (document.getElementById('li-user').value || '').trim();
+  var pass = (document.getElementById('li-pass').value || '');
+  if (!user || !pass) { errEl.style.display=''; errEl.textContent='Please enter username and password.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  errEl.style.display = 'none';
+  try {
+    var r = await fetch(FAM_API + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Login failed');
+    sessionStorage.setItem('fam_jwt', data.token);
+    sessionStorage.setItem('fam_role', data.role);
+    sessionStorage.setItem('fam_username', data.username);
+    document.getElementById('login-overlay').style.display = 'none';
+    var hdrUser = document.getElementById('hdr-user');
+    if (hdrUser) hdrUser.textContent = data.username + (data.role === 'admin' ? ' ★' : '');
+    renderPublished(); // re-render to show/hide publish controls based on role
+  } catch(err) {
+    errEl.style.display = ''; errEl.textContent = err.message || 'Invalid credentials.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('fam_jwt');
+  sessionStorage.removeItem('fam_role');
+  sessionStorage.removeItem('fam_username');
+  var overlay = document.getElementById('login-overlay');
+  if (overlay) overlay.style.display = 'flex';
+  document.getElementById('li-pass').value = '';
+  document.getElementById('li-user').value = '';
+  var errEl = document.getElementById('login-err');
+  if (errEl) errEl.style.display = 'none';
+}
+
 async function syncFromAPI() {
   var btn = document.getElementById('sync-btn');
   if (!btn || btn.disabled) return;
 
-  // Password: check localStorage first, else prompt
-  var pass = localStorage.getItem('fam_sync_pass');
-  if (!pass) {
-    pass = window.prompt('Enter Sync password:');
-    if (!pass) return; // user cancelled
-  }
+  var jwt = sessionStorage.getItem('fam_jwt');
+  if (!jwt) { doLogout(); return; }
 
   btn.disabled = true;
   btn.innerHTML = '&#9651; Syncing&hellip;';
   btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#64748b;';
   try {
     var r = await fetch(FAM_API + '/api/sync', {
-      headers: { 'X-Sync-Password': pass }
+      headers: { 'Authorization': 'Bearer ' + jwt }
     });
     var data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Sync failed');
@@ -469,7 +555,7 @@ async function syncFromAPI() {
       if (typeof renderL24Content === 'function') renderL24Content();
     }
 
-    localStorage.setItem('fam_sync_pass', pass);  // cache on success
+    // JWT already in sessionStorage
     btn.innerHTML = '&#10003; Synced';
     btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#10b981;';
     setTimeout(function() {
@@ -479,9 +565,9 @@ async function syncFromAPI() {
     }, 3000);
   } catch (err) {
     console.error('[sync]', err);
-    if (err.message && err.message.includes('401')) {
-      localStorage.removeItem('fam_sync_pass');
-      window.alert('Wrong password. Try again.');
+    if (err.message && (err.message.includes('401') || err.message.includes('403'))) {
+      doLogout();
+      return;
     }
     btn.innerHTML = '&#10007; Failed';
     btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#ef4444;';
@@ -505,10 +591,10 @@ async function publishPrice(btn) {
   btn.disabled = true;
   btn.textContent = '...';
   try {
-    var pass = localStorage.getItem('fam_sync_pass') || '';
+    var jwt = sessionStorage.getItem('fam_jwt') || '';
     var r = await fetch(FAM_API + '/api/update-price', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Sync-Password': pass },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
       body: JSON.stringify({ ref: ref, price: parseInt(price) })
     });
     var data = await r.json();
@@ -819,10 +905,11 @@ function renderPublished() {
         var pubLink = listingUrl
           ? "<a href=\""+listingUrl+"\" target=\"_blank\" style=\"color:#0d9488;font-weight:700;text-decoration:none;border-bottom:1px dashed #0d9488\" title=\"View this listing on Property Finder\">"+fmtAED(r.pub_price)+" ↗</a>"
           : "<span style=\"color:#0d9488;font-weight:700\">"+fmtAED(r.pub_price)+"</span>";
-        var priceInp = rowRef
+        var isAdmin = sessionStorage.getItem('fam_role') === 'admin';
+        var priceInp = (rowRef && isAdmin)
           ? '<input type="number" class="price-inp" data-ref="'+rowRef+'" placeholder="AED" style="width:80px;padding:3px 5px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;text-align:right">'
           : '<span style="color:#94a3b8;font-size:11px">—</span>';
-        var pubBtn = rowRef
+        var pubBtn = (rowRef && isAdmin)
           ? '<button class="pub-btn" data-ref="'+rowRef+'" onclick="publishPrice(this)" style="padding:3px 8px;background:#0d9488;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">Publish &#8593;</button>'
           : '';
         t += "<tr><td>"+bldgCell+"</td><td>"+r.neighborhood+"</td><td><b>"+r.bed_type+"</b></td>" +
@@ -1034,6 +1121,7 @@ function renderLast24h() {
 // INIT
 populateFilters();
 renderAll();
+initAuth(); // Show login screen if no JWT in session
 renderTrends();
 (function() {
   if (typeof LEADS_TS !== "undefined") {
