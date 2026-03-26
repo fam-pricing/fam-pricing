@@ -380,11 +380,21 @@ var FAM_API = 'https://fam-pricing.vercel.app';
 async function syncFromAPI() {
   var btn = document.getElementById('sync-btn');
   if (!btn || btn.disabled) return;
+
+  // Password: check localStorage first, else prompt
+  var pass = localStorage.getItem('fam_sync_pass');
+  if (!pass) {
+    pass = window.prompt('Enter Sync password:');
+    if (!pass) return; // user cancelled
+  }
+
   btn.disabled = true;
   btn.innerHTML = '&#9651; Syncing&hellip;';
   btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#64748b;';
   try {
-    var r = await fetch(FAM_API + '/api/sync');
+    var r = await fetch(FAM_API + '/api/sync', {
+      headers: { 'X-Sync-Password': pass }
+    });
     var data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Sync failed');
 
@@ -426,6 +436,7 @@ async function syncFromAPI() {
       if (typeof renderL24Content === 'function') renderL24Content();
     }
 
+    localStorage.setItem('fam_sync_pass', pass);  // cache on success
     btn.innerHTML = '&#10003; Synced';
     btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#10b981;';
     setTimeout(function() {
@@ -435,6 +446,10 @@ async function syncFromAPI() {
     }, 3000);
   } catch (err) {
     console.error('[sync]', err);
+    if (err.message && err.message.includes('401')) {
+      localStorage.removeItem('fam_sync_pass');
+      window.alert('Wrong password. Try again.');
+    }
     btn.innerHTML = '&#10007; Failed';
     btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#ef4444;';
     setTimeout(function() {
@@ -457,9 +472,10 @@ async function publishPrice(btn) {
   btn.disabled = true;
   btn.textContent = '...';
   try {
+    var pass = localStorage.getItem('fam_sync_pass') || '';
     var r = await fetch(FAM_API + '/api/update-price', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Sync-Password': pass },
       body: JSON.stringify({ ref: ref, price: parseInt(price) })
     });
     var data = await r.json();
