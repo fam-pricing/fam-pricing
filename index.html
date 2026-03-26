@@ -519,6 +519,20 @@ var _TIER_MAP = (function() {
   return m;
 })();
 
+// Build listing ref map: building|bed → ref of lowest-priced live listing (for direct PF listing link)
+var _LISTING_REF_MAP = (function() {
+  var m = {}, TIERS = typeof LISTING_TIERS !== "undefined" ? LISTING_TIERS : [];
+  for (var i = 0; i < TIERS.length; i++) {
+    var t = TIERS[i];
+    if (!t.ref || !t.price) continue;
+    var k = t.building + "|" + t.bed;
+    if (!m[k] || t.price < m[k].price) m[k] = {ref: t.ref, price: t.price};
+  }
+  var out = {};
+  for (var k in m) out[k] = 'https://www.propertyfinder.ae/en/search?c=2&rp=m&fu=1&ref=' + m[k].ref;
+  return out;
+})();
+
 
 function renderPublished() {
     var pub = filtered.filter(function(m){ return m.pub_price; });
@@ -577,10 +591,15 @@ function renderPublished() {
         if (tierVal === "premium")  tierCell = "<td><span style=\"background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9733; Premium</span></td>";
         else if (tierVal === "featured") tierCell = "<td><span style=\"background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9670; Featured</span></td>";
         else tierCell = "<td><span style=\"background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;white-space:nowrap\">&#9679; Standard</span></td>";
-        var pubLink = r.pf_url
-          ? "<a href=\""+r.pf_url+"\" target=\"_blank\" style=\"color:#0d9488;font-weight:700;text-decoration:none;border-bottom:1px dashed #0d9488\" title=\"View on Property Finder\">"+fmtAED(r.pub_price)+" ↗</a>"
+        var tierKey2 = r.building + "|" + r.bed_type;
+        var listingUrl = _LISTING_REF_MAP[tierKey2] || null;
+        var bldgCell = r.pf_url
+          ? "<a href=\""+r.pf_url+"\" target=\"_blank\" style=\"color:#1e293b;font-weight:600;text-decoration:none;border-bottom:1px dashed #94a3b8\" title=\"View market listings on Property Finder\">"+r.building+" ↗</a>"
+          : r.building;
+        var pubLink = listingUrl
+          ? "<a href=\""+listingUrl+"\" target=\"_blank\" style=\"color:#0d9488;font-weight:700;text-decoration:none;border-bottom:1px dashed #0d9488\" title=\"View this listing on Property Finder\">"+fmtAED(r.pub_price)+" ↗</a>"
           : "<span style=\"color:#0d9488;font-weight:700\">"+fmtAED(r.pub_price)+"</span>";
-        t += "<tr><td>"+r.building+"</td><td>"+r.neighborhood+"</td><td><b>"+r.bed_type+"</b></td>" +
+        t += "<tr><td>"+bldgCell+"</td><td>"+r.neighborhood+"</td><td><b>"+r.bed_type+"</b></td>" +
              "<td>"+pubLink+"</td>" +
              "<td>"+fmtAED(r.pf_avg)+"</td><td>"+diffStr+"</td>" +
              "<td>"+fmtAED(r.pf_low)+"</td><td>"+fmtAED(r.pf_high)+"</td>" + tierCell + "</tr>";
