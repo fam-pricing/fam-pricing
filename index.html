@@ -554,19 +554,24 @@ async function syncFromAPI() {
       }
       // Also update the WEEK view so it stays consistent with today/yesterday
       if (L24.week) {
-        // Last element of week barData/weekData is today
         if (L24.week.barData && L24.week.barData.length > 0) {
           L24.week.barData[L24.week.barData.length - 1] = data.leads_today;
         }
         if (L24.week.weekData && L24.week.weekData.length > 0) {
           L24.week.weekData[L24.week.weekData.length - 1] = data.leads_today;
         }
-        // Recalculate week total
         if (L24.week.weekData) {
           L24.week.total = L24.week.weekData.reduce(function(a, b){ return a + b; }, 0);
         }
       }
-      // Re-render leads tab — bypass the _l24done guard by calling renderL24Content directly
+      // Update today/yesterday lead detail tables with fresh data from sync
+      if (data.leads_today_detail && data.leads_today_detail.length) {
+        L24.today.leads = data.leads_today_detail;
+      }
+      if (data.leads_yesterday_detail && data.leads_yesterday_detail.length) {
+        L24.yesterday.leads = data.leads_yesterday_detail;
+      }
+      // Re-render leads tab
       if (typeof renderL24Content === 'function') renderL24Content();
       // Update leads-ts labels to show this was just synced
       var syncTs = 'Live — synced ' + data.timestamp;
@@ -1116,10 +1121,10 @@ function renderL24Content() {
   document.getElementById("l24-tbl-title").textContent = h3;
 
   var pill = function(s){ return s==="REPLIED"?"<span class=\"pill p-green\">REPLIED</span>":"<span class=\"pill p-amber\">DELIVERED</span>"; };
-  var t = "<table><thead><tr><th>Time</th><th>Agent</th><th>Building</th><th>Price (AED/mo)</th><th>Status</th></tr></thead><tbody>";
+  var t = "<table><thead><tr><th>Time</th><th>Building</th><th>Price (AED/mo)</th><th>Status</th><th>Agent</th></tr></thead><tbody>";
   if (d.leads && d.leads.length) {
     d.leads.forEach(function(l){
-      t += "<tr><td style=\"color:#94a3b8;font-size:11px;white-space:nowrap\">"+l.time+"</td><td style=\"color:#6366f1;font-weight:600\">"+l.agent+"</td><td>"+(l.building||"—")+"</td><td style=\"color:#0d9488;font-weight:600\">"+(l.price ? "AED "+(l.price) : "—")+"</td><td>"+pill(l.status)+"</td></tr>";
+      var priceCell = l.price ? "AED "+Number(l.price).toLocaleString()+"/mo" : "—"; t += "<tr><td style=\"color:#94a3b8;font-size:11px;white-space:nowrap\">"+l.time+"</td><td style=\"font-weight:600\">"+(l.building||"—")+"</td><td style=\"color:#0d9488;font-weight:600\">"+priceCell+"</td><td>"+pill(l.status)+"</td><td style=\"color:#6366f1;font-size:12px\">"+(l.agent||"—")+"</td></tr>";
     });
   } else {
     t += "<tr><td colspan=\"6\" style=\"text-align:center;padding:24px;color:#94a3b8;font-size:13px\">No individual lead data available for this period.</td></tr>";
