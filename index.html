@@ -410,6 +410,22 @@ async function syncFromAPI() {
     // Re-render published listings with live data
     renderPublished();
 
+    // Update leads KPI counts from live data
+    if (data.leads_today !== undefined && typeof L24 !== 'undefined') {
+      L24.today.total = data.leads_today;
+      L24.yesterday.total = data.leads_yesterday;
+      // Update bar chart data for today/yesterday
+      if (L24.today.barData && L24.today.barData.length >= 2) {
+        L24.today.barData[L24.today.barData.length - 1] = data.leads_today;
+      }
+      if (L24.yesterday.barData && L24.yesterday.barData.length >= 2) {
+        L24.yesterday.barData[L24.yesterday.barData.length - 1] = data.leads_yesterday;
+      }
+      // Re-render leads tab
+      if (typeof renderLast24h === 'function') renderLast24h();
+      if (typeof renderL24Content === 'function') renderL24Content();
+    }
+
     btn.innerHTML = '&#10003; Synced';
     btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/, '') + 'background:#10b981;';
     setTimeout(function() {
