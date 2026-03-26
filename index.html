@@ -741,7 +741,8 @@ function renderPublished() {
           }
         }
         if (liveTier) {
-          r = Object.assign({}, r, { pub_price: window._LIVE_PORTAL_PRICES[tierKey2] || r.pub_price });
+          // Only update tier — do NOT override pub_price (API price lags behind public listing price)
+          r = Object.assign({}, r, { tier: liveTier.tier });
         }
         var activeRefMap = (window._LIVE_REF_MAP && Object.keys(window._LIVE_REF_MAP).length) ? window._LIVE_REF_MAP : _LISTING_REF_MAP;
         var listingUrl = activeRefMap[tierKey2] || null;
