@@ -222,6 +222,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="tab" id="tab-btn-table" onclick="showTab('table')">Full Data Table</div>
   <div class="tab tab-star" id="tab-btn-last24h" onclick="showTab('last24h')">&#128202; Leads</div>
   <div class="tab tab-star" id="tab-btn-crm" onclick="showTab('crm')">&#128279; CRM</div>
+  <div class="tab" id="tab-btn-settings" onclick="showTab('settings')" style="display:none">&#9881; Settings</div>
 </div>
 <div class="panel active" id="panel-overview">
   <div class="kpis" id="kpi-row"></div>
@@ -370,6 +371,62 @@ tbody tr:last-child td { border-bottom:none; }
 </div>
 
 
+
+<div class="panel" id="panel-settings">
+  <div style="max-width:860px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="margin:0;font-size:16px;font-weight:700;color:#1e293b">&#9881; User Management</h3>
+      <button onclick="settingsAddUser()" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer">+ Add User</button>
+    </div>
+    <div id="settings-status" style="margin-bottom:12px;font-size:12px;color:#64748b"></div>
+    <div class="tbl-wrap">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#475569">Username</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#475569">Role</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#475569">Email</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#475569">Last Login</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#475569">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="settings-users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modals -->
+<div id="settings-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:none;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:28px;width:380px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 id="settings-modal-title" style="margin:0;font-size:15px;font-weight:700;color:#1e293b">User</h3>
+      <button onclick="closeSettingsModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">&times;</button>
+    </div>
+    <div id="settings-modal-body"></div>
+    <div id="settings-modal-err" style="display:none;color:#dc2626;font-size:12px;margin-top:8px"></div>
+    <div style="display:flex;gap:8px;margin-top:20px;justify-content:flex-end">
+      <button onclick="closeSettingsModal()" style="background:#f1f5f9;color:#475569;border:none;border-radius:7px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button>
+      <button id="settings-modal-save" onclick="settingsModalSave()" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password reveal modal -->
+<div id="pwd-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3100;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:28px;width:360px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18);text-align:center">
+    <div style="font-size:32px;margin-bottom:12px">🔑</div>
+    <h3 id="pwd-modal-title" style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1e293b"></h3>
+    <p style="font-size:12px;color:#64748b;margin:0 0 16px">This password is shown once only. Copy it now.</p>
+    <div style="background:#f8fafc;border:2px solid #0d9488;border-radius:8px;padding:14px;font-size:18px;font-weight:700;font-family:monospace;color:#1e293b;letter-spacing:2px;margin-bottom:16px" id="pwd-modal-value"></div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button onclick="navigator.clipboard.writeText(document.getElementById('pwd-modal-value').textContent)" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">📋 Copy</button>
+      <button id="pwd-modal-mailto" style="background:#f1f5f9;color:#475569;border:none;border-radius:7px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">✉️ Email</button>
+      <button onclick="document.getElementById('pwd-modal-bg').style.display='none'" style="background:#f1f5f9;color:#475569;border:none;border-radius:7px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">Done</button>
+    </div>
+  </div>
+</div>
+
 </div>
 <script>
 var MDATA = {"market":[{"date":"2026-03-27","building":"ANWA Omniyat","neighborhood":"Dubai Maritime City","bed_type":"1BR","pf_low":6500,"pf_avg":6750,"pf_high":7000,"listings":2,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=1139&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Act One Tower 1","neighborhood":"Downtown","bed_type":"1BR","pf_low":8000,"pf_avg":10872,"pf_high":17399,"listings":15,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=8567&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Address Opera","neighborhood":"Downtown","bed_type":"2BR","pf_low":12999,"pf_avg":18316,"pf_high":29999,"listings":25,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=634&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Ahad Residences","neighborhood":"Business Bay","bed_type":"1BR","pf_low":7999,"pf_avg":10283,"pf_high":16000,"listings":18,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11643&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Al Majara Dubai Marina","neighborhood":"JBR","bed_type":"1BR","pf_low":7000,"pf_avg":9236,"pf_high":15500,"listings":11,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=717&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Seaside Hills Residences","neighborhood":"Al Zorah, Ajman","bed_type":"1BR","pf_low":4200,"pf_avg":4770,"pf_high":5499,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12546&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Seaside Hills Residences","neighborhood":"Al Zorah, Ajman","bed_type":"2BR","pf_low":5300,"pf_avg":6150,"pf_high":7000,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12546&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Seaside Hills Residences","neighborhood":"Al Zorah, Ajman","bed_type":"3BR","pf_low":6500,"pf_avg":11900,"pf_high":14500,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12546&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Seaside Hills Residences","neighborhood":"Al Zorah, Ajman","bed_type":"4BR","pf_low":3000,"pf_avg":14421,"pf_high":25995,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12546&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Seaside Hills Residences","neighborhood":"Al Zorah, Ajman","bed_type":"5BR","pf_low":15000,"pf_avg":18300,"pf_high":21999,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12546&c=2&bdr[]=5&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Aykon City","neighborhood":"Business Bay","bed_type":"2BR","pf_low":7000,"pf_avg":11118,"pf_high":17000,"listings":25,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11980&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Bayz by Danube","neighborhood":"Business Bay","bed_type":"1BR","pf_low":6500,"pf_avg":6666,"pf_high":6999,"listings":3,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9126&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Bayz by Danube","neighborhood":"Business Bay","bed_type":"2BR","pf_low":7999,"pf_avg":10833,"pf_high":15000,"listings":3,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9126&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Bayz by Danube","neighborhood":"Business Bay","bed_type":"3BR","pf_low":10000,"pf_avg":14875,"pf_high":19400,"listings":4,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9126&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Bayz by Danube","neighborhood":"Business Bay","bed_type":"Studio","pf_low":4800,"pf_avg":6110,"pf_high":8999,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9126&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Binghatti Amber","neighborhood":"JVC","bed_type":"1BR","pf_low":6498,"pf_avg":8915,"pf_high":12999,"listings":24,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12870&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Binghatti Azure","neighborhood":"JVC","bed_type":"Studio","pf_low":4999,"pf_avg":6408,"pf_high":9500,"listings":11,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=13342&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Binghatti Gateway","neighborhood":"Al Jadaf","bed_type":"1BR","pf_low":6300,"pf_avg":7924,"pf_high":9999,"listings":4,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=10465&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Bluewaters Building 4","neighborhood":"Bluewater","bed_type":"3BR","pf_low":14999,"pf_avg":32437,"pf_high":55000,"listings":8,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9411&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Burj Crown","neighborhood":"Downtown","bed_type":"4BR","pf_low":13500,"pf_avg":31611,"pf_high":40000,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=10794&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Canal Residence Arabian","neighborhood":"Dubai Sports City","bed_type":"2BR","pf_low":9000,"pf_avg":9000,"pf_high":9000,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3370&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B10","neighborhood":"City Walk","bed_type":"1BR","pf_low":8500,"pf_avg":14350,"pf_high":23000,"listings":8,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9543&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B18B","neighborhood":"City Walk","bed_type":"3BR","pf_low":25000,"pf_avg":29811,"pf_high":42500,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9553&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B19","neighborhood":"City Walk","bed_type":"4BR","pf_low":13500,"pf_avg":31611,"pf_high":40000,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9554&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B22","neighborhood":"City Walk","bed_type":"3BR","pf_low":25000,"pf_avg":29811,"pf_high":42500,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9558&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B2A","neighborhood":"City Walk","bed_type":"3BR","pf_low":25000,"pf_avg":29811,"pf_high":42500,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9531&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B3B","neighborhood":"City Walk","bed_type":"5BR","pf_low":75000,"pf_avg":187778,"pf_high":275000,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9534&c=2&bdr[]=5&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B6A","neighborhood":"City Walk","bed_type":"3BR","pf_low":25000,"pf_avg":29811,"pf_high":42500,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9538&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Collective 2.0","neighborhood":"Dubai Hills","bed_type":"1BR","pf_low":6500,"pf_avg":9872,"pf_high":16200,"listings":22,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11769&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Creek Gate Tower 1","neighborhood":"Dubai Creek Harbour","bed_type":"3BR","pf_low":15000,"pf_avg":15000,"pf_high":15000,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11930&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Creek Rise Tower 2","neighborhood":"Dubai Creek Harbour","bed_type":"3BR","pf_low":15000,"pf_avg":15000,"pf_high":15000,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11939&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"DAMAC Lagoons","neighborhood":"Dubai Golf CIty","bed_type":"3BR","pf_low":15000,"pf_avg":21200,"pf_high":30000,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11559&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"DAMAC Maison Prive","neighborhood":"Business Bay","bed_type":"1BR","pf_low":6999,"pf_avg":8700,"pf_high":12555,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9355&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Elite Business Bay","neighborhood":"","bed_type":"1BR","pf_low":6600,"pf_avg":7650,"pf_high":9999,"listings":4,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9242&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Elite Residence Marina","neighborhood":"Dubai Marina","bed_type":"1BR","pf_low":5999,"pf_avg":8784,"pf_high":14000,"listings":25,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3045&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Executive Residence 2","neighborhood":"Dubai Hills","bed_type":"1BR","pf_low":8800,"pf_avg":12560,"pf_high":18000,"listings":5,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12064&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Grande Downtown","neighborhood":"Downtown","bed_type":"2BR","pf_low":11000,"pf_avg":19096,"pf_high":25000,"listings":25,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9915&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Imperial Avenue","neighborhood":"Downtown","bed_type":"3BR","pf_low":18000,"pf_avg":21500,"pf_high":30000,"listings":4,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=8875&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Island Park 1","neighborhood":"Dubai Creek Harbour","bed_type":"2BR","pf_low":12999,"pf_avg":15499,"pf_high":17999,"listings":2,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9711&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Kensington Waters","neighborhood":"Shobha Hartland","bed_type":"2BR","pf_low":7995,"pf_avg":10588,"pf_high":15499,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11544&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Lake Point JLT","neighborhood":"","bed_type":"2BR","pf_low":9500,"pf_avg":9500,"pf_high":9500,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3785&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"MAG 318","neighborhood":"Business Bay","bed_type":"1BR","pf_low":8500,"pf_avg":11166,"pf_high":15000,"listings":3,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9103&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"MAG 318","neighborhood":"Business Bay","bed_type":"2BR","pf_low":8000,"pf_avg":11083,"pf_high":16000,"listings":6,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9103&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"MAG 318","neighborhood":"Business Bay","bed_type":"Studio","pf_low":4966,"pf_avg":7209,"pf_high":9995,"listings":25,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9103&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Jadeel","neighborhood":"Madinat Jumeirah Living","bed_type":"2BR","pf_low":13000,"pf_avg":20200,"pf_high":28000,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11724&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Marina Star","neighborhood":"Dubai Marina","bed_type":"1BR","pf_low":8000,"pf_avg":13833,"pf_high":16999,"listings":6,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3071&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Marina Vista T2","neighborhood":"Dubai Harbour","bed_type":"1BR","pf_low":7500,"pf_avg":9520,"pf_high":13500,"listings":5,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=17092&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Nobles Tower","neighborhood":"Business Bay","bed_type":"1BR","pf_low":7999,"pf_avg":11666,"pf_high":17300,"listings":19,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11307&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Orchid Creek Beach","neighborhood":"","bed_type":"1BR","pf_low":8000,"pf_avg":9250,"pf_high":10500,"listings":2,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11775&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Palm Tower","neighborhood":"","bed_type":"1BR","pf_low":8500,"pf_avg":13193,"pf_high":24500,"listings":17,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=1210&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Palm Tower","neighborhood":"","bed_type":"Studio","pf_low":7000,"pf_avg":11546,"pf_high":18000,"listings":15,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=1210&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Park Point C","neighborhood":"Dubai Hills","bed_type":"1BR","pf_low":6500,"pf_avg":9700,"pf_high":12000,"listings":5,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12290&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Peninsula Five","neighborhood":"Business Bay","bed_type":"Studio","pf_low":6999,"pf_avg":9711,"pf_high":14000,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11690&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Peninsula Three","neighborhood":"Business Bay","bed_type":"1BR","pf_low":9000,"pf_avg":10116,"pf_high":11800,"listings":6,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11726&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Polo Residences","neighborhood":"Nad Al Shiba First","bed_type":"1BR","pf_low":4999,"pf_avg":7349,"pf_high":9999,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=8802&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"RP Heights","neighborhood":"Downtown","bed_type":"1BR","pf_low":7499,"pf_avg":9529,"pf_high":15998,"listings":5,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=625&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Reehan 1 Old Town","neighborhood":"Downtown","bed_type":"3BR","pf_low":13000,"pf_avg":21054,"pf_high":30000,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=4182&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Rimal 2 Marina","neighborhood":"Dubai Marina","bed_type":"1BR","pf_low":6990,"pf_avg":9432,"pf_high":14094,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3681&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Safa","neighborhood":"","bed_type":"Studio","pf_low":5000,"pf_avg":8852,"pf_high":14139,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12587&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Samana Park View","neighborhood":"Arjan","bed_type":"1BR","pf_low":8000,"pf_avg":10000,"pf_high":12000,"listings":2,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11511&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Shams 1 JBR","neighborhood":"Jumeirah Beach Residence","bed_type":"4BR","pf_low":14000,"pf_avg":22575,"pf_high":43200,"listings":8,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3694&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Sulafa Tower","neighborhood":"Dubai Marina","bed_type":"3BR","pf_low":10500,"pf_avg":19499,"pf_high":25000,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3085&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Sunrise Bay T1","neighborhood":"Emmar Beachfront","bed_type":"4BR","pf_low":22000,"pf_avg":31000,"pf_high":40000,"listings":2,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=17099&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Sunrise Bay T2","neighborhood":"Dubai harbour","bed_type":"1BR","pf_low":9500,"pf_avg":12880,"pf_high":17000,"listings":5,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=17100&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"The Bay Business Bay","neighborhood":"Business Bay","bed_type":"2BR","pf_low":8000,"pf_avg":11533,"pf_high":18000,"listings":6,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11788&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"The Crest Sobha Hartland","neighborhood":"Shoba Hartland","bed_type":"2BR","pf_low":7995,"pf_avg":11218,"pf_high":19749,"listings":13,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12094&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Trillionaire Residences","neighborhood":"Business Bay","bed_type":"Studio","pf_low":4999,"pf_avg":8896,"pf_high":14500,"listings":25,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=13106&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Upside Living","neighborhood":"Business Bay","bed_type":"1BR","pf_low":7500,"pf_avg":8033,"pf_high":8600,"listings":3,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12476&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Upside Living","neighborhood":"Business Bay","bed_type":"Studio","pf_low":6500,"pf_avg":7933,"pf_high":11900,"listings":6,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12476&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Urban Oasis","neighborhood":"Business Bay","bed_type":"1BR","pf_low":6500,"pf_avg":8864,"pf_high":13000,"listings":24,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11418&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Urban Oasis","neighborhood":"Business Bay","bed_type":"2BR","pf_low":5600,"pf_avg":13101,"pf_high":25000,"listings":22,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11418&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Urban Oasis","neighborhood":"Business Bay","bed_type":"3BR","pf_low":15000,"pf_avg":30625,"pf_high":52500,"listings":4,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11418&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Vida Dubai Mall","neighborhood":"Downtown","bed_type":"2BR","pf_low":11000,"pf_avg":18035,"pf_high":29500,"listings":20,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9145&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Viridian Central Park","neighborhood":"city walk central park","bed_type":"1BR","pf_low":9990,"pf_avg":12945,"pf_high":20800,"listings":4,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11789&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Viridian Central Park","neighborhood":"city walk central park","bed_type":"2BR","pf_low":13000,"pf_avg":13000,"pf_high":13000,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11789&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Wellcube JVT","neighborhood":"JVT","bed_type":"2BR","pf_low":8000,"pf_avg":11299,"pf_high":13000,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12003&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Yansoon 6","neighborhood":"Downtown  old town","bed_type":"2BR","pf_low":8500,"pf_avg":14944,"pf_high":25500,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=4195&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Downtown Views 2 Tower 1","neighborhood":"Downtown","bed_type":"2BR","pf_low":9500,"pf_avg":14830,"pf_high":22000,"listings":11,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12710&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Downtown Views 2 Tower 2","neighborhood":"Downtown","bed_type":"2BR","pf_low":10000,"pf_avg":12279,"pf_high":15000,"listings":11,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12711&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Azizi Riviera 43","neighborhood":"Meydan","bed_type":"2BR","pf_low":7000,"pf_avg":9812,"pf_high":13999,"listings":8,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12790&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"The Paragon by IGO","neighborhood":"Business Bay","bed_type":"1BR","pf_low":7500,"pf_avg":8891,"pf_high":11000,"listings":12,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11832&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Palace Beach Residence","neighborhood":"Emaar Beachfront","bed_type":"1BR","pf_low":7999,"pf_avg":11084,"pf_high":20000,"listings":25,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11332&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Beach Isle","neighborhood":"Dubai Harbour","bed_type":"1BR","pf_low":8000,"pf_avg":12549,"pf_high":15600,"listings":12,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=10797&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Azizi Mina","neighborhood":"Palm Jumeirah","bed_type":"4BR","pf_low":17995,"pf_avg":44499,"pf_high":60000,"listings":8,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=13617&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Canal Front Residences","neighborhood":"Al Wasl","bed_type":"2BR","pf_low":10000,"pf_avg":16416,"pf_high":28000,"listings":19,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=11575&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Exclusive 21","neighborhood":"Al Zorah, Ajman","bed_type":"5BR","pf_low":13000,"pf_avg":17500,"pf_high":25000,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=14604&c=2&bdr[]=5&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Bella Rose","neighborhood":"Al Barsha","bed_type":"Studio","pf_low":4500,"pf_avg":4833,"pf_high":4999,"listings":3,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=10166&c=2&bdr[]=0&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Azizi Greenfield","neighborhood":"Meydan","bed_type":"2BR","pf_low":7500,"pf_avg":7500,"pf_high":7500,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=13054&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Canal Bay","neighborhood":"Business Bay","bed_type":"2BR","pf_low":10997,"pf_avg":15329,"pf_high":19999,"listings":3,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=13775&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Canal Bay","neighborhood":"Business Bay","bed_type":"3BR","pf_low":10000,"pf_avg":16833,"pf_high":24000,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=13775&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Canal Bay","neighborhood":"Business Bay","bed_type":"4BR","pf_low":13500,"pf_avg":42178,"pf_high":80000,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=13775&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Golfville","neighborhood":"Dubai Hills","bed_type":"1BR","pf_low":7500,"pf_avg":9057,"pf_high":11000,"listings":7,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=10470&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Sadaf 5","neighborhood":"JBR","bed_type":"2BR","pf_low":12900,"pf_avg":13900,"pf_high":14900,"listings":2,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=3690&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"City Walk B16","neighborhood":"City Walk","bed_type":"3BR","pf_low":25000,"pf_avg":29811,"pf_high":42500,"listings":9,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9550&c=2&bdr[]=3&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Binghatti Corner","neighborhood":"JVC","bed_type":"1BR","pf_low":5800,"pf_avg":8479,"pf_high":13300,"listings":18,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=12203&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"J5 Al Sufouh","neighborhood":"Al Sufouh","bed_type":"1BR","pf_low":5000,"pf_avg":7099,"pf_high":9999,"listings":10,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=2276&c=2&bdr[]=1&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Elite Business Bay","neighborhood":"Business Bay","bed_type":"2BR","pf_low":9000,"pf_avg":11796,"pf_high":15990,"listings":5,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9242&c=2&bdr[]=2&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Elite Business Bay","neighborhood":"Business Bay","bed_type":"4BR","pf_low":14000,"pf_avg":14000,"pf_high":14000,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=9242&c=2&bdr[]=4&fu=0&rp=m&ob=pa"},{"date":"2026-03-27","building":"Dubai Creek Residences North Tower 2","neighborhood":"Dubai Creek Harbour","bed_type":"3BR","pf_low":15000,"pf_avg":15000,"pf_high":15000,"listings":1,"pub_price":null,"vs_market":null,"pf_url":"https://www.propertyfinder.ae/en/search?l=2893&c=2&bdr[]=3&fu=0&rp=m&ob=pa"}]};
@@ -438,7 +495,8 @@ function baseOpts(horiz) {
 function showTab(name) {
     if (name === "last24h") { setTimeout(renderLast24h, 50); }
     if (name === "crm" && !crmLoaded) loadCRM();
-    var tabs = ["overview","market","published","trends","table","last24h","crm"];
+    if (name === "settings") loadSettings();
+    var tabs = ["overview","market","published","trends","table","last24h","crm","settings"];
     for (var i=0; i<tabs.length; i++) {
         var btn = document.getElementById("tab-btn-" + tabs[i]);
         var pnl = document.getElementById("panel-" + tabs[i]);
@@ -550,18 +608,21 @@ var FAM_API = 'https://fam-pricing.vercel.app';
 // Apply role-based UI restrictions — called on both login AND every page refresh
 function applyRoleUI(role) {
   if (role === 'agent') {
-    // Agents: CRM only — hide all pricing/analytics tabs
+    // Agents: CRM only
     ['overview','market','published','trends','table','last24h'].forEach(function(t) {
       var el = document.getElementById('tab-btn-' + t);
       if (el) el.style.display = 'none';
     });
     showTab('crm');
   } else if (role === 'admin' || role === 'viewer') {
-    // Admins + viewers: no CRM tab
+    // Admins + viewers: no CRM, no Settings
     var crmTab = document.getElementById('tab-btn-crm');
     if (crmTab) crmTab.style.display = 'none';
+  } else if (role === 'owner') {
+    // Owner: show Settings tab
+    var stab = document.getElementById('tab-btn-settings');
+    if (stab) stab.style.display = '';
   }
-  // owner sees everything — no restrictions
 }
 
 function initAuth() {
@@ -1668,6 +1729,176 @@ async function saveCRMModal() {
   closeCRMModal();
   renderCRM();
   if (Object.keys(updates).length) await crmUpdateLead(id, updates);
+}
+
+// ── Settings / User Management ────────────────────────────────────────────────
+
+var _settingsMode = null; // 'add' | 'edit'
+var _settingsTarget = null; // username being edited
+
+async function loadSettings() {
+  var tbody = document.getElementById('settings-users-tbody');
+  var statusEl = document.getElementById('settings-status');
+  if (!tbody) return;
+  if (statusEl) statusEl.textContent = 'Loading…';
+  var jwt = sessionStorage.getItem('fam_jwt') || '';
+  try {
+    var r = await fetch(FAM_API + '/api/admin/users', { headers: { Authorization: 'Bearer ' + jwt } });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to load users');
+    if (statusEl) statusEl.textContent = d.users.length + ' users';
+    var ROLE_BADGE = { owner:'#7c3aed', admin:'#0d9488', viewer:'#64748b', agent:'#f59e0b' };
+    tbody.innerHTML = d.users.map(function(u) {
+      var badge = '<span style="background:' + (ROLE_BADGE[u.role]||'#64748b') + ';color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">' + u.role + '</span>';
+      var lastLogin = u.last_login ? new Date(u.last_login).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '<span style="color:#94a3b8">Never</span>';
+      var email = u.email ? '<span style="color:#475569">' + u.email + '</span>' : '<span style="color:#94a3b8">—</span>';
+      var isOwner = u.username === 'faysal';
+      var actions = '<button onclick="settingsEditUser(\'' + u.username + '\',\'' + u.role + '\',\'' + (u.email||'') + '\')" style="background:#f1f5f9;color:#475569;border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-right:4px">Edit</button>'
+        + '<button onclick="settingsResetPassword(\'' + u.username + '\',\'' + (u.email||'') + '\')" style="background:#fef3c7;color:#92400e;border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-right:4px">Reset PW</button>'
+        + (!isOwner ? '<button onclick="settingsDeleteUser(\'' + u.username + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">Delete</button>' : '');
+      return '<tr style="border-bottom:1px solid #f1f5f9">'
+        + '<td style="padding:10px 12px;font-weight:600;color:#1e293b">' + u.username + '</td>'
+        + '<td style="padding:10px 12px">' + badge + '</td>'
+        + '<td style="padding:10px 12px">' + email + '</td>'
+        + '<td style="padding:10px 12px;font-size:12px;color:#475569">' + lastLogin + '</td>'
+        + '<td style="padding:10px 12px">' + actions + '</td>'
+        + '</tr>';
+    }).join('');
+  } catch(err) {
+    if (statusEl) statusEl.textContent = '✗ ' + err.message;
+  }
+}
+
+function settingsAddUser() {
+  _settingsMode = 'add';
+  _settingsTarget = null;
+  document.getElementById('settings-modal-title').textContent = 'Add User';
+  document.getElementById('settings-modal-body').innerHTML = `
+    <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Username</label>
+    <input id="sm-username" type="text" placeholder="e.g. sara" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;margin-bottom:12px">
+    <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Role</label>
+    <select id="sm-role" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;margin-bottom:12px">
+      <option value="agent">agent — CRM only</option>
+      <option value="viewer">viewer — read-only pricing</option>
+      <option value="admin">admin — pricing + publish</option>
+    </select>
+    <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Email (for password delivery)</label>
+    <input id="sm-email" type="email" placeholder="user@email.com" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box">
+    <p style="font-size:11px;color:#94a3b8;margin:8px 0 0">A random password will be generated and shown to you after saving.</p>`;
+  document.getElementById('settings-modal-err').style.display = 'none';
+  document.getElementById('settings-modal-bg').style.display = 'flex';
+  setTimeout(function(){ var el = document.getElementById('sm-username'); if(el) el.focus(); }, 50);
+}
+
+function settingsEditUser(username, role, email) {
+  _settingsMode = 'edit';
+  _settingsTarget = username;
+  document.getElementById('settings-modal-title').textContent = 'Edit: ' + username;
+  document.getElementById('settings-modal-body').innerHTML = `
+    <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Role</label>
+    <select id="sm-role" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;margin-bottom:12px">
+      <option value="agent"` + (role==='agent'?' selected':'') + `>agent — CRM only</option>
+      <option value="viewer"` + (role==='viewer'?' selected':'') + `>viewer — read-only pricing</option>
+      <option value="admin"` + (role==='admin'?' selected':'') + `>admin — pricing + publish</option>
+      <option value="owner"` + (role==='owner'?' selected':'') + `>owner — full access</option>
+    </select>
+    <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Email</label>
+    <input id="sm-email" type="email" value="` + (email||'') + `" placeholder="user@email.com" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box">`;
+  document.getElementById('settings-modal-err').style.display = 'none';
+  document.getElementById('settings-modal-bg').style.display = 'flex';
+}
+
+function closeSettingsModal() {
+  document.getElementById('settings-modal-bg').style.display = 'none';
+}
+
+async function settingsModalSave() {
+  var btn = document.getElementById('settings-modal-save');
+  var errEl = document.getElementById('settings-modal-err');
+  var role  = (document.getElementById('sm-role')?.value || '').trim();
+  var email = (document.getElementById('sm-email')?.value || '').trim();
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Saving…';
+  var jwt = sessionStorage.getItem('fam_jwt') || '';
+  try {
+    var r, d;
+    if (_settingsMode === 'add') {
+      var username = (document.getElementById('sm-username')?.value || '').trim().toLowerCase();
+      if (!username) throw new Error('Username is required');
+      r = await fetch(FAM_API + '/api/admin/users', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + jwt, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, role, email: email || null }),
+      });
+      d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Failed to create user');
+      closeSettingsModal();
+      showPasswordModal(d.username, d.password, email);
+    } else {
+      r = await fetch(FAM_API + '/api/admin/users', {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer ' + jwt, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: _settingsTarget, role, email: email || null }),
+      });
+      d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Failed to update user');
+      closeSettingsModal();
+      loadSettings();
+    }
+  } catch(err) {
+    errEl.textContent = err.message; errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+}
+
+async function settingsResetPassword(username, email) {
+  if (!confirm('Reset password for ' + username + '?\n\nA new random password will be generated.')) return;
+  var jwt = sessionStorage.getItem('fam_jwt') || '';
+  try {
+    var r = await fetch(FAM_API + '/api/admin/users', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + jwt, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, reset_password: true }),
+    });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to reset password');
+    showPasswordModal(username, d.new_password, email);
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+function showPasswordModal(username, password, email) {
+  document.getElementById('pwd-modal-title').textContent = 'Password for ' + username;
+  document.getElementById('pwd-modal-value').textContent = password;
+  var mailtoBtn = document.getElementById('pwd-modal-mailto');
+  if (email) {
+    mailtoBtn.style.display = '';
+    mailtoBtn.onclick = function() {
+      window.open('mailto:' + email + '?subject=fam Living Dashboard - Your Login&body=Hi ' + username + '%2C%0A%0AYour dashboard login details%3A%0AURL%3A https%3A%2F%2Ffam-pricing.github.io%2Ffam-pricing%2F%0AUsername%3A ' + username + '%0APassword%3A ' + password + '%0A%0APlease keep this secure.','_blank');
+    };
+  } else {
+    mailtoBtn.style.display = 'none';
+  }
+  document.getElementById('pwd-modal-bg').style.display = 'flex';
+  loadSettings();
+}
+
+async function settingsDeleteUser(username) {
+  if (!confirm('Delete user "' + username + '"?\n\nThis cannot be undone.')) return;
+  var jwt = sessionStorage.getItem('fam_jwt') || '';
+  try {
+    var r = await fetch(FAM_API + '/api/admin/users?username=' + encodeURIComponent(username), {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + jwt },
+    });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to delete user');
+    loadSettings();
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
 }
 
 </script>
