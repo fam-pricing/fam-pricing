@@ -495,7 +495,7 @@ tbody tr:last-child td { border-bottom:none; }
     <!-- Viewing confirmed banner (hidden by default) -->
     <div id="sim-viewing-banner" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#1e40af">
       <b>&#128197; Viewing confirmed</b> &nbsp;<span id="sim-viewing-when" style="font-weight:600"></span><br>
-      <span style="font-size:11px;color:#3b82f6">In real mode, bot posts an internal Trengo note tagging @Afifa @Ahmed @Joel</span>
+      <span style="font-size:11px;color:#3b82f6">In real mode, bot posts an internal Trengo note tagging the full team</span>
     </div>
 
     <!-- Input -->
@@ -1568,7 +1568,7 @@ function renderBotStatus(d) {
 
   var events = d.events || [];
   if (!events.length) {
-    if (feedEl) feedEl.innerHTML = '<div style="text-align:center;padding:32px;color:#94a3b8">No bot activity yet — waiting for the first night shift lead.</div>';
+    if (feedEl) feedEl.innerHTML = '<div style="text-align:center;padding:32px;color:#94a3b8">No bot activity yet.</div>';
     return;
   }
 
