@@ -223,6 +223,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="tab tab-star" id="tab-btn-last24h" onclick="showTab('last24h')">&#128202; Leads</div>
   <div class="tab tab-star" id="tab-btn-crm" onclick="showTab('crm')">&#128279; CRM</div>
   <div class="tab tab-star" id="tab-btn-bot" onclick="showTab('bot')">&#129302; Bot</div>
+  <div class="tab" id="tab-btn-simulator" onclick="showTab('simulator')" style="display:none">&#129514; Simulator</div>
   <div class="tab" id="tab-btn-settings" onclick="showTab('settings')" style="display:none">&#9881; Settings</div>
 </div>
 <div class="panel active" id="panel-overview">
@@ -448,6 +449,63 @@ tbody tr:last-child td { border-bottom:none; }
   </div>
 </div>
 
+<!-- Simulator panel -->
+<div class="panel" id="panel-simulator">
+  <div style="max-width:720px;margin:0 auto">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="margin:0;font-size:17px;font-weight:700;color:#0f1923">🧪 Playbook Simulator</h2>
+        <div style="font-size:12px;color:#64748b;margin-top:3px">You are the lead. The bot replies using your live playbook.</div>
+      </div>
+      <button onclick="simClear()" style="padding:7px 18px;border-radius:20px;border:2px solid #e2e8f0;background:#fff;color:#475569;font-weight:600;font-size:12px;cursor:pointer">↺ New chat</button>
+    </div>
+
+    <!-- Lead context strip -->
+    <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;margin-bottom:16px">
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:4px">LEAD NAME</label>
+        <input id="sim-lead-name" type="text" value="Ahmed" placeholder="e.g. Hussein"
+          style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#1e293b">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:4px">PROPERTY</label>
+        <input id="sim-property" type="text" value="Act Two Tower 2 — 1BR" placeholder="e.g. Act Two Tower 2 — 1BR"
+          style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#1e293b">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:4px">PRICE (AED/mo)</label>
+        <input id="sim-price" type="number" value="11000" placeholder="e.g. 11000"
+          style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#1e293b">
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div id="sim-chat" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;min-height:320px;max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div style="text-align:center;color:#94a3b8;font-size:12px;padding:20px 0">Start the conversation below — type as if you are the lead.</div>
+    </div>
+
+    <!-- Escalation warning (hidden by default) -->
+    <div id="sim-escalate-banner" style="display:none;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e">
+      <b>⚠️ Bot would escalate this to Faysal</b><br>
+      <span id="sim-escalate-reason" style="font-size:12px;opacity:0.8"></span>
+    </div>
+
+    <!-- Input -->
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <textarea id="sim-input" rows="2" placeholder="Type a lead message and press Send…"
+        style="flex:1;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;resize:none;font-family:inherit;color:#1e293b;line-height:1.5"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();simSend();}"></textarea>
+      <button id="sim-send-btn" onclick="simSend()"
+        style="padding:10px 22px;background:#00b4a0;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;height:44px">
+        Send
+      </button>
+    </div>
+    <div style="font-size:11px;color:#94a3b8;margin-top:6px">Shift+Enter for new line · Enter to send</div>
+  </div>
+</div>
+
 <!-- Settings modals -->
 <div id="settings-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:none;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:28px;width:380px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18)">
@@ -551,11 +609,12 @@ function showTab(name) {
     if (name === "crm" && !crmLoaded) loadCRM();
     if (name === "settings") loadSettings();
     if (name === "bot") { setTimeout(loadBotStatus, 50); }
-    var tabs = ["overview","market","published","trends","table","last24h","crm","bot","settings"];
+    if (name === "simulator") { setTimeout(function(){ var el=document.getElementById('sim-input'); if(el) el.focus(); }, 80); }
+    var tabs = ["overview","market","published","trends","table","last24h","crm","bot","simulator","settings"];
     for (var i=0; i<tabs.length; i++) {
         var btn = document.getElementById("tab-btn-" + tabs[i]);
         var pnl = document.getElementById("panel-" + tabs[i]);
-        var starCls = (tabs[i]==="published"||tabs[i]==="last24h"||tabs[i]==="crm"||tabs[i]==="bot") ? " tab-star" : "";
+        var starCls = (tabs[i]==="published"||tabs[i]==="last24h"||tabs[i]==="crm"||tabs[i]==="bot"||tabs[i]==="simulator") ? " tab-star" : "";
         if (btn) btn.className = tabs[i] === name ? "tab active"+starCls : "tab"+starCls;
         if (pnl) pnl.className = tabs[i] === name ? "panel active" : "panel";
     }
@@ -676,9 +735,11 @@ function applyRoleUI(role) {
     var botTab = document.getElementById('tab-btn-bot');
     if (botTab) botTab.style.display = 'none';
   } else if (role === 'owner') {
-    // Owner: show Settings tab
+    // Owner: show Settings + Simulator tabs
     var stab = document.getElementById('tab-btn-settings');
     if (stab) stab.style.display = '';
+    var simtab = document.getElementById('tab-btn-simulator');
+    if (simtab) simtab.style.display = '';
   }
 }
 
@@ -1524,6 +1585,149 @@ function renderBotStatus(d) {
   html += '</div>';
   if (feedEl) feedEl.innerHTML = html;
 }
+
+// ── Playbook Simulator ────────────────────────────────────────────────────────
+
+var _simHistory = [];
+var _simBusy    = false;
+
+function simClear() {
+  _simHistory = [];
+  var chat = document.getElementById('sim-chat');
+  if (chat) chat.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;padding:20px 0">Start the conversation below — type as if you are the lead.</div>';
+  var banner = document.getElementById('sim-escalate-banner');
+  if (banner) banner.style.display = 'none';
+  var inp = document.getElementById('sim-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+}
+
+function simAddBubble(from, text, extra) {
+  var chat = document.getElementById('sim-chat');
+  if (!chat) return;
+  // Remove placeholder on first message
+  if (_simHistory.length === 0 && from === 'lead') {
+    var placeholder = chat.querySelector('div[style*="text-align:center"]');
+    if (placeholder) placeholder.remove();
+  }
+  var isLead  = from === 'lead';
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:' + (isLead ? 'flex-end' : 'flex-start');
+
+  var label = document.createElement('div');
+  label.style.cssText = 'font-size:10px;font-weight:600;color:#94a3b8;margin-bottom:3px;padding:0 4px';
+  label.textContent = isLead ? 'You (Lead)' : '🤖 Bot';
+  wrapper.appendChild(label);
+
+  var bubble = document.createElement('div');
+  bubble.style.cssText = 'max-width:75%;padding:10px 14px;border-radius:' +
+    (isLead ? '14px 14px 4px 14px;background:#dcfce7;color:#166534' : '14px 14px 14px 4px;background:#f1f5f9;color:#1e293b') +
+    ';font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word';
+  bubble.textContent = text;
+  wrapper.appendChild(bubble);
+
+  if (extra) {
+    var note = document.createElement('div');
+    note.style.cssText = 'font-size:10px;color:#94a3b8;margin-top:3px;padding:0 4px';
+    note.textContent = extra;
+    wrapper.appendChild(note);
+  }
+
+  chat.appendChild(wrapper);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function simAddTyping() {
+  var chat = document.getElementById('sim-chat');
+  if (!chat) return;
+  var el = document.createElement('div');
+  el.id = 'sim-typing';
+  el.style.cssText = 'display:flex;align-items:center;gap:4px;padding:6px 0';
+  el.innerHTML = '<div style="font-size:10px;font-weight:600;color:#94a3b8">🤖 Bot is typing</div>' +
+    '<div style="display:flex;gap:3px">' +
+    '<span style="width:5px;height:5px;background:#94a3b8;border-radius:50%;animation:simDot 1.2s infinite 0s"></span>' +
+    '<span style="width:5px;height:5px;background:#94a3b8;border-radius:50%;animation:simDot 1.2s infinite 0.4s"></span>' +
+    '<span style="width:5px;height:5px;background:#94a3b8;border-radius:50%;animation:simDot 1.2s infinite 0.8s"></span>' +
+    '</div>';
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function simRemoveTyping() {
+  var el = document.getElementById('sim-typing');
+  if (el) el.remove();
+}
+
+async function simSend() {
+  if (_simBusy) return;
+  var inp   = document.getElementById('sim-input');
+  var msg   = (inp?.value || '').trim();
+  if (!msg) return;
+
+  inp.value = '';
+  _simBusy  = true;
+  document.getElementById('sim-send-btn').disabled = true;
+  document.getElementById('sim-escalate-banner').style.display = 'none';
+
+  // Show lead bubble
+  simAddBubble('lead', msg);
+  _simHistory.push({ from: 'lead', text: msg });
+
+  // Show typing indicator
+  simAddTyping();
+
+  try {
+    var jwt  = sessionStorage.getItem('fam_jwt') || '';
+    var name = document.getElementById('sim-lead-name')?.value?.trim() || 'Ahmed';
+    var prop = document.getElementById('sim-property')?.value?.trim()  || 'unknown property';
+    var price = document.getElementById('sim-price')?.value?.trim()    || '';
+
+    var resp = await fetch(FAM_API + '/api/crm/playground', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify({
+        message:       msg,
+        history:       _simHistory.slice(0, -1), // exclude the message we just added
+        lead_name:     name,
+        property:      prop,
+        listing_price: price ? parseInt(price) : null,
+      })
+    });
+
+    simRemoveTyping();
+
+    var data = await resp.json();
+
+    if (!resp.ok) {
+      simAddBubble('bot', '⚠️ API error: ' + (data.error || resp.status));
+    } else {
+      var botText = data.reply || '(no response)';
+      simAddBubble('bot', botText);
+      _simHistory.push({ from: 'bot', text: botText });
+
+      if (data.escalate) {
+        var banner  = document.getElementById('sim-escalate-banner');
+        var reasonEl = document.getElementById('sim-escalate-reason');
+        if (banner) banner.style.display = '';
+        if (reasonEl) reasonEl.textContent = data.reason ? 'Reason: ' + data.reason : '';
+      }
+    }
+
+  } catch (err) {
+    simRemoveTyping();
+    simAddBubble('bot', '⚠️ ' + (err.message || 'Request failed'));
+  }
+
+  _simBusy = false;
+  document.getElementById('sim-send-btn').disabled = false;
+  inp.focus();
+}
+
+// Inject dot animation CSS once
+(function() {
+  var style = document.createElement('style');
+  style.textContent = '@keyframes simDot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}';
+  document.head.appendChild(style);
+})();
 
 // INIT
 populateFilters();
