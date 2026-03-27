@@ -437,6 +437,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
     <div id="bot-shift-badge" style="padding:6px 18px;border-radius:20px;font-weight:700;font-size:13px;background:#e2e8f0;color:#475569">Loading…</div>
     <button onclick="loadBotStatus()" style="padding:6px 16px;border-radius:20px;border:2px solid #00b4a0;background:#fff;color:#00b4a0;font-weight:600;font-size:12px;cursor:pointer">↻ Refresh</button>
+    <button onclick="botTestNote(this)" style="padding:6px 16px;border-radius:20px;border:2px solid #6366f1;background:#fff;color:#6366f1;font-weight:600;font-size:12px;cursor:pointer">🧪 Test Trengo Note</button>
     <span id="bot-status-ts" style="color:#94a3b8;font-size:12px"></span>
   </div>
   <div class="kpis" id="bot-kpi-row"></div>
@@ -1508,6 +1509,34 @@ function renderLast24h() {
 
 
 var _botLoaded = false;
+
+async function botTestNote(btn) {
+  var jwt = sessionStorage.getItem('fam_jwt') || '';
+  if (!jwt) { alert('Not logged in'); return; }
+  var orig = btn.textContent;
+  btn.textContent = '⏳ Sending…';
+  btn.disabled = true;
+  try {
+    var r = await fetch(FAM_API + '/api/crm/playground', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify({ action: 'test-note' })
+    });
+    var d = await r.json();
+    if (r.ok && d.ok) {
+      btn.textContent = '✅ Note sent!';
+      btn.style.borderColor = '#16a34a';
+      btn.style.color = '#16a34a';
+    } else {
+      btn.textContent = '⚠️ Failed (' + (d.error || r.status) + ')';
+      btn.style.borderColor = '#dc2626';
+      btn.style.color = '#dc2626';
+    }
+  } catch(e) {
+    btn.textContent = '⚠️ ' + e.message;
+  }
+  setTimeout(function(){ btn.textContent = orig; btn.disabled = false; btn.style.borderColor=''; btn.style.color=''; }, 4000);
+}
 
 async function loadBotStatus() {
   var jwt = sessionStorage.getItem('fam_jwt');
