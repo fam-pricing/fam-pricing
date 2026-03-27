@@ -222,7 +222,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="tab" id="tab-btn-table" onclick="showTab('table')">Full Data Table</div>
   <div class="tab tab-star" id="tab-btn-last24h" onclick="showTab('last24h')">&#128202; Leads</div>
   <div class="tab tab-star" id="tab-btn-crm" onclick="showTab('crm')">&#128279; CRM</div>
-  <div class="tab tab-star" id="tab-btn-bot" onclick="showTab('bot')">&#129302; Bot</div>
+  <div class="tab tab-star" id="tab-btn-bot" onclick="showTab('bot')" style="display:none">&#129302; Bot</div>
   <div class="tab" id="tab-btn-simulator" onclick="showTab('simulator')" style="display:none">&#129514; Simulator</div>
   <div class="tab" id="tab-btn-settings" onclick="showTab('settings')" style="display:none">&#9881; Settings</div>
 </div>
@@ -729,15 +729,15 @@ function applyRoleUI(role) {
     });
     showTab('crm');
   } else if (role === 'admin' || role === 'viewer') {
-    // Admins + viewers: no CRM, no Bot tab, no Settings
+    // Admins + viewers: no CRM, no Settings (Bot + Simulator already hidden by default)
     var crmTab = document.getElementById('tab-btn-crm');
     if (crmTab) crmTab.style.display = 'none';
-    var botTab = document.getElementById('tab-btn-bot');
-    if (botTab) botTab.style.display = 'none';
   } else if (role === 'owner') {
-    // Owner: show Settings + Simulator tabs
+    // Owner only: show Settings, Bot, Simulator
     var stab = document.getElementById('tab-btn-settings');
     if (stab) stab.style.display = '';
+    var botTab = document.getElementById('tab-btn-bot');
+    if (botTab) botTab.style.display = '';
     var simtab = document.getElementById('tab-btn-simulator');
     if (simtab) simtab.style.display = '';
   }
