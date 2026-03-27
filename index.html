@@ -277,8 +277,8 @@ tbody tr:last-child td { border-bottom:none; }
         <option value="mona">Mona</option>
       </select>
       <select id="crm-days-filter" style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px" onchange="loadCRM(parseInt(this.value))">
-        <option value="7">Last 7 days</option>
-        <option value="30" selected>Last 30 days</option>
+        <option value="7" selected>Last 7 days</option>
+        <option value="30">Last 30 days</option>
         <option value="60">Last 60 days</option>
         <option value="90">Last 90 days</option>
       </select>
@@ -1375,7 +1375,7 @@ var CRM_STAGES = [
 ];
 
 async function loadCRM(days) {
-  days = days || parseInt(document.getElementById('crm-days-filter')?.value || '30');
+  days = days || parseInt(document.getElementById('crm-days-filter')?.value || '7');
   var jwt = sessionStorage.getItem('fam_jwt') || '';
   var statusEl = document.getElementById('crm-status');
   if (statusEl) statusEl.textContent = 'Loading…';
