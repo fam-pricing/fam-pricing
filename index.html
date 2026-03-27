@@ -1409,7 +1409,7 @@ function renderCRM() {
     var cards = leads.filter(function(l){ return l.crm_stage === st.id; });
     html += '<div class="crm-col ' + st.cls + '">';
     html += '<div class="crm-col-hdr">' + st.label + '<span class="crm-badge">' + cards.length + '</span></div>';
-    html += '<div class="crm-col-body" id="crm-col-' + st.id + '" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'' + st.id + '')" ondragleave="this.classList.remove('drag-over')">';
+    html += '<div class="crm-col-body" id="crm-col-' + st.id + '" ondragover="crmDragOver(event)" ondrop="crmDrop(event,\''+st.id+'\');" ondragleave="this.classList.remove(\'drag-over\')">';
     cards.forEach(function(l) { html += crmCardHTML(l); });
     html += '</div></div>';
   });
