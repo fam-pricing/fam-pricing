@@ -1808,14 +1808,17 @@ async function simSend() {
       })
     });
 
-    simRemoveTyping();
-
     var data = await resp.json();
 
     if (!resp.ok) {
+      simRemoveTyping();
       simAddBubble('bot', '⚠️ API error: ' + (data.error || resp.status));
     } else {
       var botText = data.reply || '(no response)';
+      // Keep typing indicator visible for a realistic human typing delay
+      var typingMs = Math.min(20000, Math.max(4000, botText.length * 80));
+      await new Promise(function(r){ setTimeout(r, typingMs); });
+      simRemoveTyping();
       simAddBubble('bot', botText);
       _simHistory.push({ from: 'bot', text: botText });
 
