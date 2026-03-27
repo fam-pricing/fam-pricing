@@ -487,9 +487,15 @@ tbody tr:last-child td { border-bottom:none; }
     </div>
 
     <!-- Escalation warning (hidden by default) -->
-    <div id="sim-escalate-banner" style="display:none;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e">
+    <div id="sim-escalate-banner" style="display:none;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#92400e">
       <b>⚠️ Bot would escalate this to Faysal</b><br>
       <span id="sim-escalate-reason" style="font-size:12px;opacity:0.8"></span>
+    </div>
+
+    <!-- Viewing confirmed banner (hidden by default) -->
+    <div id="sim-viewing-banner" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#1e40af">
+      <b>&#128197; Viewing confirmed</b> &nbsp;<span id="sim-viewing-when" style="font-weight:600"></span><br>
+      <span style="font-size:11px;color:#3b82f6">In real mode, bot posts an internal Trengo note tagging @Afifa @Ahmed @Joel</span>
     </div>
 
     <!-- Input -->
@@ -1597,6 +1603,8 @@ function simClear() {
   if (chat) chat.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;padding:20px 0">Start the conversation below — type as if you are the lead.</div>';
   var banner = document.getElementById('sim-escalate-banner');
   if (banner) banner.style.display = 'none';
+  var vBanner = document.getElementById('sim-viewing-banner');
+  if (vBanner) vBanner.style.display = 'none';
   var inp = document.getElementById('sim-input');
   if (inp) { inp.value = ''; inp.focus(); }
 }
@@ -1744,6 +1752,7 @@ async function simSend() {
   _simBusy  = true;
   document.getElementById('sim-send-btn').disabled = true;
   document.getElementById('sim-escalate-banner').style.display = 'none';
+  document.getElementById('sim-viewing-banner').style.display = 'none';
 
   // Show lead bubble
   simAddBubble('lead', msg);
@@ -1786,6 +1795,13 @@ async function simSend() {
         var reasonEl = document.getElementById('sim-escalate-reason');
         if (banner) banner.style.display = '';
         if (reasonEl) reasonEl.textContent = data.reason ? 'Reason: ' + data.reason : '';
+      }
+
+      if (data.viewing) {
+        var vBanner = document.getElementById('sim-viewing-banner');
+        var vWhen   = document.getElementById('sim-viewing-when');
+        if (vBanner) vBanner.style.display = '';
+        if (vWhen)   vWhen.textContent = data.viewing;
       }
     }
 
