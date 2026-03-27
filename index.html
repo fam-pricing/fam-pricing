@@ -546,6 +546,18 @@ var FAM_API = 'https://fam-pricing.vercel.app';
 
 
 // ── JWT Auth ─────────────────────────────────────────────────────────────────
+
+// Apply role-based UI restrictions — called on both login AND every page refresh
+function applyRoleUI(role) {
+  if (role === 'agent') {
+    ['overview','market','published','trends','table','last24h'].forEach(function(t) {
+      var el = document.getElementById('tab-btn-' + t);
+      if (el) el.style.display = 'none';
+    });
+    showTab('crm');
+  }
+}
+
 function initAuth() {
   var jwt = sessionStorage.getItem('fam_jwt');
   var overlay = document.getElementById('login-overlay');
@@ -565,7 +577,10 @@ function initAuth() {
     }
     if (overlay) overlay.style.display = 'none';
     var hdrUser = document.getElementById('hdr-user');
-    if (hdrUser) hdrUser.textContent = payload.username + (payload.role === 'admin' ? ' ★' : '');
+    var roleLabel = payload.role === 'owner' ? ' ⬟' : (payload.role === 'admin' ? ' ★' : '');
+    if (hdrUser) hdrUser.textContent = payload.username + roleLabel;
+    // Re-apply role restrictions on every page load/refresh
+    applyRoleUI(payload.role);
   } catch(e) {
     sessionStorage.removeItem('fam_jwt');
     if (overlay) overlay.style.display = 'flex';
@@ -595,13 +610,8 @@ async function doLogin() {
     var hdrUser = document.getElementById('hdr-user');
     var roleLabel = data.role === 'owner' ? ' ⬟' : (data.role === 'admin' ? ' ★' : '');
     if (hdrUser) hdrUser.textContent = data.username + roleLabel;
+    applyRoleUI(data.role);
     if (data.role === 'agent') {
-      // Agents see CRM only — hide all pricing tabs
-      ['overview','market','published','trends','table','last24h'].forEach(function(t) {
-        var el = document.getElementById('tab-btn-' + t);
-        if (el) el.style.display = 'none';
-      });
-      showTab('crm');
       loadCRM();
     } else {
       renderPublished();
