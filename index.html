@@ -550,12 +550,18 @@ var FAM_API = 'https://fam-pricing.vercel.app';
 // Apply role-based UI restrictions — called on both login AND every page refresh
 function applyRoleUI(role) {
   if (role === 'agent') {
+    // Agents: CRM only — hide all pricing/analytics tabs
     ['overview','market','published','trends','table','last24h'].forEach(function(t) {
       var el = document.getElementById('tab-btn-' + t);
       if (el) el.style.display = 'none';
     });
     showTab('crm');
+  } else if (role === 'admin' || role === 'viewer') {
+    // Admins + viewers: no CRM tab
+    var crmTab = document.getElementById('tab-btn-crm');
+    if (crmTab) crmTab.style.display = 'none';
   }
+  // owner sees everything — no restrictions
 }
 
 function initAuth() {
