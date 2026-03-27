@@ -2133,7 +2133,10 @@ async function loadTrengoThread(leadId, leadName) {
 
   try {
     var jwtToken = sessionStorage.getItem('fam_jwt');
-    var resp = await fetch('https://fam-pricing.vercel.app/api/crm/trengo-thread?lead_id=' + encodeURIComponent(leadId) + '&lead_name=' + encodeURIComponent(leadName || 'Lead'), {
+    // Pass ticket_id directly to skip the GitHub CRM state lookup (faster + more reliable)
+    var lead = crmLeads.find(function(l){ return l.id === leadId; });
+    var ticketParam = (lead && lead.crm_trengo_ticket) ? '&ticket_id=' + encodeURIComponent(lead.crm_trengo_ticket) : '';
+    var resp = await fetch('https://fam-pricing.vercel.app/api/crm/trengo-thread?lead_id=' + encodeURIComponent(leadId) + '&lead_name=' + encodeURIComponent(leadName || 'Lead') + ticketParam, {
       headers: { Authorization: 'Bearer ' + jwtToken }
     });
     var data = await resp.json();
