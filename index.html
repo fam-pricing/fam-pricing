@@ -222,6 +222,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="tab" id="tab-btn-table" onclick="showTab('table')">Full Data Table</div>
   <div class="tab tab-star" id="tab-btn-last24h" onclick="showTab('last24h')">&#128202; Leads</div>
   <div class="tab tab-star" id="tab-btn-crm" onclick="showTab('crm')">&#128279; CRM</div>
+  <div class="tab tab-star" id="tab-btn-bot" onclick="showTab('bot')">&#129302; Bot</div>
   <div class="tab" id="tab-btn-settings" onclick="showTab('settings')" style="display:none">&#9881; Settings</div>
 </div>
 <div class="panel active" id="panel-overview">
@@ -430,6 +431,23 @@ tbody tr:last-child td { border-bottom:none; }
   </div>
 </div>
 
+
+<div class="panel" id="panel-bot">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div id="bot-shift-badge" style="padding:6px 18px;border-radius:20px;font-weight:700;font-size:13px;background:#e2e8f0;color:#475569">Loading…</div>
+    <button onclick="loadBotStatus()" style="padding:6px 16px;border-radius:20px;border:2px solid #00b4a0;background:#fff;color:#00b4a0;font-weight:600;font-size:12px;cursor:pointer">↻ Refresh</button>
+    <span id="bot-status-ts" style="color:#94a3b8;font-size:12px"></span>
+  </div>
+  <div class="kpis" id="bot-kpi-row"></div>
+  <div style="margin-top:24px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <h3 style="margin:0;font-size:14px;font-weight:600;color:#374151">Activity Feed</h3>
+      <span id="bot-pending-badge" style="display:none;background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px"></span>
+    </div>
+    <div id="bot-feed" style="font-size:13px;color:#64748b">Loading bot activity…</div>
+  </div>
+</div>
+
 <!-- Settings modals -->
 <div id="settings-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:none;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:28px;width:380px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18)">
@@ -530,11 +548,12 @@ function showTab(name) {
     if (name === "last24h") { setTimeout(renderLast24h, 50); }
     if (name === "crm" && !crmLoaded) loadCRM();
     if (name === "settings") loadSettings();
-    var tabs = ["overview","market","published","trends","table","last24h","crm","settings"];
+    if (name === "bot") { setTimeout(loadBotStatus, 50); }
+    var tabs = ["overview","market","published","trends","table","last24h","crm","bot","settings"];
     for (var i=0; i<tabs.length; i++) {
         var btn = document.getElementById("tab-btn-" + tabs[i]);
         var pnl = document.getElementById("panel-" + tabs[i]);
-        var starCls = (tabs[i]==="published"||tabs[i]==="last24h"||tabs[i]==="crm") ? " tab-star" : "";
+        var starCls = (tabs[i]==="published"||tabs[i]==="last24h"||tabs[i]==="crm"||tabs[i]==="bot") ? " tab-star" : "";
         if (btn) btn.className = tabs[i] === name ? "tab active"+starCls : "tab"+starCls;
         if (pnl) pnl.className = tabs[i] === name ? "panel active" : "panel";
     }
@@ -1414,6 +1433,92 @@ function renderLast24h() {
     var el = document.getElementById("leads-ts-panel"); if (el) el.textContent = LEADS_TS;
     var el2 = document.getElementById("leads-ts-hdr"); if (el2) el2.textContent = LEADS_TS;
   }
+}
+
+
+var _botLoaded = false;
+
+async function loadBotStatus() {
+  var jwt = sessionStorage.getItem('fam_jwt');
+  if (!jwt) return;
+  var feedEl = document.getElementById('bot-feed');
+  var kpiEl  = document.getElementById('bot-kpi-row');
+  var badge  = document.getElementById('bot-shift-badge');
+  var tsEl   = document.getElementById('bot-status-ts');
+  if (feedEl) feedEl.textContent = 'Loading…';
+
+  try {
+    var r = await fetch(FAM_API + '/api/crm/bot-status', {
+      headers: { 'Authorization': 'Bearer ' + jwt }
+    });
+    if (!r.ok) {
+      if (feedEl) feedEl.innerHTML = '<span style="color:#ef4444">Failed to load bot status (' + r.status + ')</span>';
+      return;
+    }
+    var d = await r.json();
+    renderBotStatus(d);
+    _botLoaded = true;
+    if (tsEl) tsEl.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-GB', {timeZone:'Asia/Dubai'}) + ' GST';
+  } catch (e) {
+    if (feedEl) feedEl.innerHTML = '<span style="color:#ef4444">Error: ' + e.message + '</span>';
+  }
+}
+
+function renderBotStatus(d) {
+  var badge     = document.getElementById('bot-shift-badge');
+  var kpiEl     = document.getElementById('bot-kpi-row');
+  var feedEl    = document.getElementById('bot-feed');
+  var pendBadge = document.getElementById('bot-pending-badge');
+
+  if (badge) {
+    badge.textContent    = d.shift_label || '';
+    badge.style.background = d.night_shift ? '#1e293b' : '#f0fdf4';
+    badge.style.color      = d.night_shift ? '#a5f3fc' : '#16a34a';
+  }
+
+  var s = d.stats || {};
+  if (kpiEl) {
+    kpiEl.innerHTML =
+      kpi('AI Replies', s.total_bot_replies || 0, 'messages sent by bot', 'c-teal') +
+      kpi('Leads Handled', s.bot_replied_leads || 0, 'had bot replies', 'c-teal') +
+      kpi('Pending Q', s.pending_escalations || 0, 'waiting for Faysal', s.pending_escalations > 0 ? 'c-red' : 'c-green') +
+      kpi('Taught by Faysal', s.taught_by_faysal || 0, 'answers added to playbook', 'c-teal') +
+      kpi('Learned from Afifa', s.learned_from_afifa || 0, 'daytime learnings', 'c-teal');
+  }
+
+  if (pendBadge) {
+    if (s.pending_escalations > 0) {
+      pendBadge.style.display = '';
+      pendBadge.textContent   = s.pending_escalations + ' pending';
+    } else {
+      pendBadge.style.display = 'none';
+    }
+  }
+
+  var events = d.events || [];
+  if (!events.length) {
+    if (feedEl) feedEl.innerHTML = '<div style="text-align:center;padding:32px;color:#94a3b8">No bot activity yet — waiting for the first night shift lead.</div>';
+    return;
+  }
+
+  var icons  = { reply:'💬', escalate:'❓', learn:'📚', taught:'✅', waiting:'⏳' };
+  var colors = { reply:'#0d9488', escalate:'#f59e0b', learn:'#6366f1', taught:'#16a34a', waiting:'#ef4444' };
+
+  var html = '<div style="display:flex;flex-direction:column;gap:0">';
+  events.forEach(function(e, i) {
+    var icon  = icons[e.type]  || '•';
+    var color = colors[e.type] || '#64748b';
+    html += '<div style="display:flex;gap:12px;padding:10px 0;' + (i < events.length - 1 ? 'border-bottom:1px solid #f1f5f9' : '') + '">' +
+      '<span style="font-size:16px;line-height:1.4">' + icon + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:600;color:' + color + ';font-size:13px">' + (e.label || '') + '</div>' +
+        '<div style="color:#94a3b8;font-size:12px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (e.detail || '') + '</div>' +
+      '</div>' +
+      '<div style="color:#cbd5e1;font-size:11px;white-space:nowrap;align-self:center">' + (e.ts_label || '') + '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  if (feedEl) feedEl.innerHTML = html;
 }
 
 // INIT
