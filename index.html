@@ -303,6 +303,16 @@ tbody tr:last-child td { border-bottom:none; }
       <div id="crm-modal-notes" class="crm-note-list" style="margin-bottom:10px"></div>
       <textarea id="crm-modal-note-inp" rows="2" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;resize:vertical;margin-bottom:8px" placeholder="Add a note…"></textarea>
     </div>
+    <!-- Trengo Chat Panel -->
+    <div id="crm-trengo-panel" style="display:none;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <label style="font-size:12px;color:#64748b;font-weight:600">💬 WhatsApp Conversation</label>
+        <span id="crm-trengo-badge" style="font-size:11px;color:#94a3b8"></span>
+      </div>
+      <div id="crm-trengo-summary" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;font-size:12px;color:#166534;margin-bottom:10px;white-space:pre-line;display:none"></div>
+      <div id="crm-trengo-messages" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px"></div>
+      <div id="crm-trengo-loading" style="text-align:center;color:#94a3b8;font-size:12px;padding:16px;display:none">Loading conversation…</div>
+    </div>
     <div id="crm-modal-closed-wrap" style="display:none">
       <label style="font-size:12px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">Closed Price (AED/mo)</label>
       <input id="crm-modal-price-inp" type="number" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;margin-bottom:8px" placeholder="e.g. 8500">
@@ -320,6 +330,7 @@ tbody tr:last-child td { border-bottom:none; }
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button onclick="saveCRMModal()" class="crm-modal-btn">Save</button>
+      <button id="crm-trengo-btn" onclick="toggleTrengoPanel()" class="crm-modal-btn" style="background:#25D366;color:#fff;border-color:#25D366">💬 Chat</button>
       <button onclick="closeCRMModal()" class="crm-modal-btn cancel">Cancel</button>
     </div>
   </div>
@@ -1530,11 +1541,107 @@ function openCRMModal(id) {
   document.getElementById('crm-modal-lost-wrap').style.display   = lead.crm_stage === 'lost'   ? '' : 'none';
   if (lead.crm_closed_price) document.getElementById('crm-modal-price-inp').value = lead.crm_closed_price;
   document.getElementById('crm-modal-bg').style.display = '';
+  // Reset Trengo panel
+  _trengoLoaded = false;
+  document.getElementById('crm-trengo-panel').style.display = 'none';
+  document.getElementById('crm-trengo-btn').textContent = '💬 Chat';
+  document.getElementById('crm-trengo-messages').innerHTML = '';
+  document.getElementById('crm-trengo-summary').style.display = 'none';
+  document.getElementById('crm-trengo-badge').textContent = '';
+  document.getElementById('crm-trengo-loading').style.display = 'none';
+  // Show chat button only if lead has auto_responded (means phone captured)
+  var hasTrengo = lead.crm_auto_responded;
+  document.getElementById('crm-trengo-btn').style.display = hasTrengo ? '' : 'none';
 }
 
 function closeCRMModal() {
   document.getElementById('crm-modal-bg').style.display = 'none';
   _crmModalId = null;
+}
+
+// ── Trengo Chat Panel ─────────────────────────────────────────────────────────
+
+var _trengoLoaded = false;
+
+function toggleTrengoPanel() {
+  var panel = document.getElementById('crm-trengo-panel');
+  var isOpen = panel.style.display !== 'none';
+  if (isOpen) {
+    panel.style.display = 'none';
+    document.getElementById('crm-trengo-btn').textContent = '💬 Chat';
+  } else {
+    panel.style.display = '';
+    document.getElementById('crm-trengo-btn').textContent = '💬 Hide Chat';
+    if (!_trengoLoaded) loadTrengoThread(_crmModalId);
+  }
+}
+
+async function loadTrengoThread(leadId) {
+  if (!leadId) return;
+  _trengoLoaded = true;
+  var loading  = document.getElementById('crm-trengo-loading');
+  var msgs     = document.getElementById('crm-trengo-messages');
+  var summary  = document.getElementById('crm-trengo-summary');
+  var badge    = document.getElementById('crm-trengo-badge');
+
+  loading.style.display = '';
+  msgs.innerHTML = '';
+  summary.style.display = 'none';
+
+  try {
+    var jwtToken = sessionStorage.getItem('fam_jwt');
+    var resp = await fetch('https://fam-pricing.vercel.app/api/crm/trengo-thread?lead_id=' + encodeURIComponent(leadId), {
+      headers: { Authorization: 'Bearer ' + jwtToken }
+    });
+    var data = await resp.json();
+    loading.style.display = 'none';
+
+    if (!resp.ok) {
+      msgs.innerHTML = '<div style="color:#ef4444;font-size:12px;text-align:center">' + escH(data.error || 'Error loading conversation') + '</div>';
+      return;
+    }
+
+    // Summary
+    if (data.summary) {
+      summary.textContent = data.summary;
+      summary.style.display = '';
+    }
+
+    // Badge
+    if (data.ticket) {
+      badge.textContent = 'Ticket #' + data.ticket.id + ' · ' + (data.ticket.status || '') + (data.ticket.assignee ? ' · ' + data.ticket.assignee : '');
+    } else if (!data.ticket && data.meta?.auto_responded) {
+      badge.textContent = 'No Trengo ticket yet';
+      badge.style.color = '#f59e0b';
+    }
+
+    // Messages
+    var messages = data.messages || [];
+    if (!messages.length) {
+      msgs.innerHTML = '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">No messages yet.</div>';
+      return;
+    }
+
+    msgs.innerHTML = messages.map(function(m) {
+      var isAgent = m.from === 'agent';
+      var bubbleStyle = isAgent
+        ? 'align-self:flex-end;background:#dcfce7;color:#166534;border-radius:14px 14px 4px 14px;'
+        : 'align-self:flex-start;background:#f1f5f9;color:#1e293b;border-radius:14px 14px 14px 4px;';
+      var time = m.time ? new Date(m.time).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      return '<div style="max-width:80%;padding:8px 12px;font-size:12px;line-height:1.5;' + bubbleStyle + '">'
+        + '<div style="font-weight:600;font-size:10px;margin-bottom:3px;opacity:0.7">' + escH(m.author) + '</div>'
+        + '<div>' + escH(m.text) + '</div>'
+        + (time ? '<div style="font-size:10px;opacity:0.5;margin-top:3px;text-align:right">' + time + '</div>' : '')
+        + '</div>';
+    }).join('');
+
+    // Scroll to bottom
+    msgs.scrollTop = msgs.scrollHeight;
+
+  } catch(err) {
+    loading.style.display = 'none';
+    msgs.innerHTML = '<div style="color:#ef4444;font-size:12px;text-align:center">' + escH(err.message) + '</div>';
+  }
 }
 
 async function saveCRMModal() {
