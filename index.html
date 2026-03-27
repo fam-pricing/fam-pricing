@@ -1430,8 +1430,8 @@ function crmCardHTML(l) {
   var agentTag = (sessionStorage.getItem('fam_role') === 'owner')
     ? '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">' + (l.agent_name || '—') + '</div>' : '';
   return '<div class="crm-card" draggable="true" id="crm-card-' + l.id + '" '
-    + 'ondragstart="crmDragStart(event,'' + l.id + '')" '
-    + 'onclick="openCRMModal('' + l.id + '')">'
+    + 'ondragstart="crmDragStart(event,\'' + l.id + '\')" '
+    + 'onclick="openCRMModal(\'' + l.id + '\')">'
     + '<div class="crm-card-name">' + escH(l.sender_name) + '</div>'
     + agentTag
     + '<div class="crm-card-building">' + escH(building) + '</div>'
