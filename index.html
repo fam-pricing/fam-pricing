@@ -139,6 +139,41 @@ tbody tr:last-child td { border-bottom:none; }
 
 @media(max-width:900px) { .grid2,.grid3 { grid-template-columns:1fr; } }
 
+
+/* ── CRM Kanban ─────────────────────────────────────────── */
+.crm-board{display:flex;gap:12px;padding:4px 0 16px;overflow-x:auto;min-height:480px;align-items:flex-start}
+.crm-col{flex:0 0 210px;background:#f1f5f9;border-radius:10px;padding:10px;display:flex;flex-direction:column}
+.crm-col-hdr{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;color:#fff}
+.crm-col-hdr .crm-badge{background:rgba(255,255,255,.25);border-radius:12px;padding:1px 7px;font-size:11px}
+.crm-col-body{flex:1;min-height:80px;border-radius:6px;transition:background .15s}
+.crm-col-body.drag-over{background:rgba(99,102,241,.1);outline:2px dashed #6366f1}
+.crm-col-new .crm-col-hdr{background:#3b82f6}
+.crm-col-contacted .crm-col-hdr{background:#f59e0b}
+.crm-col-viewing .crm-col-hdr{background:#8b5cf6}
+.crm-col-closed .crm-col-hdr{background:#10b981}
+.crm-col-lost .crm-col-hdr{background:#ef4444}
+.crm-card{background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.07);border:1px solid #e2e8f0;transition:box-shadow .15s,transform .1s;user-select:none}
+.crm-card:active{cursor:grabbing}
+.crm-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.11);transform:translateY(-1px)}
+.crm-card.dragging{opacity:.45;transform:scale(.97)}
+.crm-card-name{font-weight:600;font-size:13px;color:#1e293b;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-card-building{font-size:11px;color:#64748b;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-card-foot{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.crm-card-time{font-size:10px;color:#94a3b8}
+.crm-wa{background:#25D366;color:#fff;border:none;border-radius:5px;padding:3px 7px;font-size:10px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;line-height:1.4}
+.crm-pill{border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;text-transform:uppercase}
+.crm-pill-replied{background:#d1fae5;color:#065f46}
+.crm-pill-delivered{background:#fef3c7;color:#92400e}
+.crm-pill-note{background:#ede9fe;color:#5b21b6;margin-left:2px}
+.crm-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+.crm-modal{background:#fff;border-radius:12px;padding:24px;width:460px;max-width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.crm-note-list{background:#f8fafc;border-radius:6px;padding:10px;max-height:140px;overflow-y:auto;margin-bottom:10px}
+.crm-note-item{font-size:12px;color:#374151;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid #e5e7eb}
+.crm-note-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.crm-note-meta{font-size:10px;color:#94a3b8;margin-top:2px}
+.crm-modal-btn{background:#0d9488;color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer}
+.crm-modal-btn.sec{background:#f1f5f9;color:#374151}
+
 </style>
 </head>
 <body>
@@ -186,6 +221,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="tab" id="tab-btn-trends" onclick="showTab('trends')">Price Trends</div>
   <div class="tab" id="tab-btn-table" onclick="showTab('table')">Full Data Table</div>
   <div class="tab tab-star" id="tab-btn-last24h" onclick="showTab('last24h')">&#128202; Leads</div>
+  <div class="tab tab-star" id="tab-btn-crm" onclick="showTab('crm')">&#128279; CRM</div>
 </div>
 <div class="panel active" id="panel-overview">
   <div class="kpis" id="kpi-row"></div>
@@ -225,6 +261,70 @@ tbody tr:last-child td { border-bottom:none; }
   </div>
   <div class="card"><div class="card-title">Listing Volume Trend</div><div class="chart-box-sm"><canvas id="ch-tr-vol"></canvas></div></div>
 </div>
+<div class="panel" id="panel-crm">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <h3 style="margin:0;font-size:16px;font-weight:700;color:#1e293b">Lead Pipeline</h3>
+      <span id="crm-status" style="font-size:11px;color:#94a3b8"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <select id="crm-agent-filter" style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;display:none" onchange="renderCRM()">
+        <option value="">All Agents</option>
+        <option value="afifa">Afifa</option>
+        <option value="ahmed">Ahmed</option>
+        <option value="joel">Joel</option>
+        <option value="sobhi">Sobhi</option>
+        <option value="mona">Mona</option>
+      </select>
+      <select id="crm-days-filter" style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px" onchange="loadCRM(parseInt(this.value))">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="60">Last 60 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button onclick="loadCRM()" style="background:#0d9488;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">&#8635; Refresh</button>
+    </div>
+  </div>
+  <div id="crm-board" class="crm-board">
+    <div style="color:#94a3b8;font-size:13px;padding:20px">Click Refresh to load leads…</div>
+  </div>
+</div>
+
+<!-- CRM Lead Modal -->
+<div id="crm-modal-bg" class="crm-modal-bg" style="display:none" onclick="if(event.target===this)closeCRMModal()">
+  <div class="crm-modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <h3 id="crm-modal-title" style="margin:0;font-size:16px;color:#1e293b">Lead Detail</h3>
+      <button onclick="closeCRMModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;line-height:1">&#x2715;</button>
+    </div>
+    <div id="crm-modal-info" style="background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#374151;line-height:1.7"></div>
+    <div id="crm-modal-notes-wrap">
+      <label style="font-size:12px;color:#64748b;font-weight:600;display:block;margin-bottom:6px">Notes</label>
+      <div id="crm-modal-notes" class="crm-note-list" style="margin-bottom:10px"></div>
+      <textarea id="crm-modal-note-inp" rows="2" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;resize:vertical;margin-bottom:8px" placeholder="Add a note…"></textarea>
+    </div>
+    <div id="crm-modal-closed-wrap" style="display:none">
+      <label style="font-size:12px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">Closed Price (AED/mo)</label>
+      <input id="crm-modal-price-inp" type="number" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;margin-bottom:8px" placeholder="e.g. 8500">
+    </div>
+    <div id="crm-modal-lost-wrap" style="display:none">
+      <label style="font-size:12px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">Reason Lost</label>
+      <select id="crm-modal-lost-inp" style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;margin-bottom:8px">
+        <option value="">Select reason…</option>
+        <option value="too_expensive">Too expensive</option>
+        <option value="no_response">No response from lead</option>
+        <option value="went_elsewhere">Went with another property</option>
+        <option value="not_available">Dates not available</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="saveCRMModal()" class="crm-modal-btn">Save</button>
+      <button onclick="closeCRMModal()" class="crm-modal-btn cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="panel" id="panel-table">
   <div class="tbl-wrap">
     <div class="tbl-top"><h3 id="tbl-count">All Combos</h3><input class="tbl-search" id="tbl-q" placeholder="Search..." oninput="renderTable()" type="text"></div>
@@ -325,11 +425,12 @@ function baseOpts(horiz) {
 
 function showTab(name) {
     if (name === "last24h") { setTimeout(renderLast24h, 50); }
-    var tabs = ["overview","market","published","trends","table","last24h"];
+    if (name === "crm" && !crmLoaded) loadCRM();
+    var tabs = ["overview","market","published","trends","table","last24h","crm"];
     for (var i=0; i<tabs.length; i++) {
         var btn = document.getElementById("tab-btn-" + tabs[i]);
         var pnl = document.getElementById("panel-" + tabs[i]);
-        var starCls = (tabs[i]==="published"||tabs[i]==="last24h") ? " tab-star" : "";
+        var starCls = (tabs[i]==="published"||tabs[i]==="last24h"||tabs[i]==="crm") ? " tab-star" : "";
         if (btn) btn.className = tabs[i] === name ? "tab active"+starCls : "tab"+starCls;
         if (pnl) pnl.className = tabs[i] === name ? "panel active" : "panel";
     }
@@ -480,10 +581,20 @@ async function doLogin() {
     sessionStorage.setItem('fam_username', data.username);
     document.getElementById('login-overlay').style.display = 'none';
     var hdrUser = document.getElementById('hdr-user');
-    if (hdrUser) hdrUser.textContent = data.username + (data.role === 'admin' ? ' ★' : '');
-    renderPublished(); // re-render to show/hide publish controls based on role
-    // Auto-sync immediately after login so prices load without extra click
-    setTimeout(syncFromAPI, 400);
+    var roleLabel = data.role === 'owner' ? ' ⬟' : (data.role === 'admin' ? ' ★' : '');
+    if (hdrUser) hdrUser.textContent = data.username + roleLabel;
+    if (data.role === 'agent') {
+      // Agents see CRM only — hide all pricing tabs
+      ['overview','market','published','trends','table','last24h'].forEach(function(t) {
+        var el = document.getElementById('tab-btn-' + t);
+        if (el) el.style.display = 'none';
+      });
+      showTab('crm');
+      loadCRM();
+    } else {
+      renderPublished();
+      setTimeout(syncFromAPI, 400);
+    }
   } catch(err) {
     errEl.style.display = ''; errEl.textContent = err.message || 'Invalid credentials.';
   } finally {
@@ -1247,6 +1358,202 @@ function fabToast(msg, dur, color) {
   setTimeout(function(){ t.style.opacity = '0'; }, dur || 3000);
 }
 
+
+
+// ── CRM Kanban ────────────────────────────────────────────────────────────
+var crmLeads = [];
+var crmLoaded = false;
+var _crmDragId = null;
+var _crmModalId = null;
+
+var CRM_STAGES = [
+  { id:'new',        label:'New',       cls:'crm-col-new'       },
+  { id:'contacted',  label:'Contacted', cls:'crm-col-contacted' },
+  { id:'viewing',    label:'Viewing',   cls:'crm-col-viewing'   },
+  { id:'closed',     label:'Closed',    cls:'crm-col-closed'    },
+  { id:'lost',       label:'Lost',      cls:'crm-col-lost'      },
+];
+
+async function loadCRM(days) {
+  days = days || parseInt(document.getElementById('crm-days-filter')?.value || '30');
+  var jwt = sessionStorage.getItem('fam_jwt') || '';
+  var statusEl = document.getElementById('crm-status');
+  if (statusEl) statusEl.textContent = 'Loading…';
+  try {
+    var r = await fetch(FAM_API + '/api/crm/leads?days=' + days, {
+      headers: { Authorization: 'Bearer ' + jwt }
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Failed to load leads');
+    crmLeads = data.leads || [];
+    crmLoaded = true;
+    if (statusEl) statusEl.textContent = crmLeads.length + ' leads · ' + days + 'd window';
+    // Show agent filter for owner
+    var filterEl = document.getElementById('crm-agent-filter');
+    if (filterEl && sessionStorage.getItem('fam_role') === 'owner') filterEl.style.display = '';
+    renderCRM();
+  } catch(err) {
+    if (statusEl) statusEl.textContent = '✗ ' + err.message;
+    console.error('[CRM] loadCRM error', err);
+  }
+}
+
+function renderCRM() {
+  var board = document.getElementById('crm-board');
+  if (!board) return;
+  var agentF = (document.getElementById('crm-agent-filter')?.value || '').trim();
+  var leads = agentF ? crmLeads.filter(function(l){ return l.agent_username === agentF; }) : crmLeads;
+
+  var html = '';
+  CRM_STAGES.forEach(function(st) {
+    var cards = leads.filter(function(l){ return l.crm_stage === st.id; });
+    html += '<div class="crm-col ' + st.cls + '">';
+    html += '<div class="crm-col-hdr">' + st.label + '<span class="crm-badge">' + cards.length + '</span></div>';
+    html += '<div class="crm-col-body" id="crm-col-' + st.id + '" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'' + st.id + '')" ondragleave="this.classList.remove('drag-over')">';
+    cards.forEach(function(l) { html += crmCardHTML(l); });
+    html += '</div></div>';
+  });
+  board.innerHTML = html;
+}
+
+function crmCardHTML(l) {
+  var timeAgo = crmTimeAgo(l.createdAt);
+  var pill = l.pf_status === 'REPLIED'
+    ? '<span class="crm-pill crm-pill-replied">Replied</span>'
+    : '<span class="crm-pill crm-pill-delivered">New</span>';
+  var notesBadge = l.crm_notes && l.crm_notes.length
+    ? '<span class="crm-pill crm-pill-note">💬 ' + l.crm_notes.length + '</span>' : '';
+  var waBtn = l.sender_phone
+    ? '<a class="crm-wa" href="https://wa.me/' + l.sender_phone.replace(/[^0-9+]/g,'') + '" target="_blank" onclick="event.stopPropagation()">WhatsApp</a>'
+    : '';
+  var building = l.building + (l.bed_type ? ' · ' + l.bed_type : '');
+  var agentTag = (sessionStorage.getItem('fam_role') === 'owner')
+    ? '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">' + (l.agent_name || '—') + '</div>' : '';
+  return '<div class="crm-card" draggable="true" id="crm-card-' + l.id + '" '
+    + 'ondragstart="crmDragStart(event,'' + l.id + '')" '
+    + 'onclick="openCRMModal('' + l.id + '')">'
+    + '<div class="crm-card-name">' + escH(l.sender_name) + '</div>'
+    + agentTag
+    + '<div class="crm-card-building">' + escH(building) + '</div>'
+    + '<div class="crm-card-foot">'
+    + '<span class="crm-card-time">' + timeAgo + '</span>'
+    + '<span style="display:flex;align-items:center;gap:3px">' + pill + notesBadge + '</span>'
+    + '</div>'
+    + (waBtn ? '<div style="margin-top:7px">' + waBtn + '</div>' : '')
+    + '</div>';
+}
+
+function escH(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function crmTimeAgo(iso) {
+  var diff = Date.now() - new Date(iso).getTime();
+  var h = Math.floor(diff/3600000);
+  if (h < 1)  return Math.floor(diff/60000) + 'm ago';
+  if (h < 24) return h + 'h ago';
+  return Math.floor(h/24) + 'd ago';
+}
+
+function crmDragStart(e, id) {
+  _crmDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(function(){ var el=document.getElementById('crm-card-'+id); if(el) el.classList.add('dragging'); }, 0);
+}
+
+function crmDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+async function crmDrop(e, stage) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  var id = _crmDragId;
+  _crmDragId = null;
+  var el = document.getElementById('crm-card-' + id);
+  if (el) el.classList.remove('dragging');
+  if (!id) return;
+  var lead = crmLeads.find(function(l){ return l.id === id; });
+  if (!lead || lead.crm_stage === stage) return;
+  // Optimistic update
+  lead.crm_stage = stage;
+  renderCRM();
+  // If dropped on closed/lost, open modal for extra info
+  if (stage === 'closed' || stage === 'lost') { openCRMModal(id); }
+  // Persist
+  await crmUpdateLead(id, { stage: stage });
+}
+
+async function crmUpdateLead(id, updates) {
+  var jwt = sessionStorage.getItem('fam_jwt') || '';
+  updates.lead_id = id;
+  try {
+    var r = await fetch(FAM_API + '/api/crm/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jwt },
+      body: JSON.stringify(updates)
+    });
+    if (!r.ok) {
+      var d = await r.json();
+      console.error('[CRM] update failed', d.error);
+    }
+  } catch(err) {
+    console.error('[CRM] update error', err);
+  }
+}
+
+function openCRMModal(id) {
+  var lead = crmLeads.find(function(l){ return l.id === id; });
+  if (!lead) return;
+  _crmModalId = id;
+  // Build info block
+  var waLink = lead.sender_phone
+    ? '<a class="crm-wa" href="https://wa.me/' + lead.sender_phone.replace(/[^0-9+]/g,'') + '" target="_blank">Open WhatsApp</a>' : '—';
+  var info = '<b>' + escH(lead.sender_name) + '</b><br>'
+    + '📞 ' + (lead.sender_phone || '—') + ' ' + waLink + '<br>'
+    + '🏢 ' + escH(lead.building) + (lead.bed_type ? ' · ' + lead.bed_type : '') + '<br>'
+    + '👤 ' + escH(lead.agent_name || '—') + '<br>'
+    + '⏱ ' + crmTimeAgo(lead.createdAt) + ' · PF: ' + lead.pf_status;
+  if (lead.crm_closed_price) info += '<br>✅ Closed at AED ' + Number(lead.crm_closed_price).toLocaleString() + '/mo';
+  document.getElementById('crm-modal-info').innerHTML = info;
+  document.getElementById('crm-modal-title').textContent = lead.sender_name || 'Lead Detail';
+  // Notes
+  var notes = lead.crm_notes || [];
+  var notesHtml = notes.length ? notes.map(function(n){
+    return '<div class="crm-note-item">' + escH(n.text) + '<div class="crm-note-meta">' + escH(n.by) + ' · ' + new Date(n.ts).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) + '</div></div>';
+  }).join('') : '<div style="color:#94a3b8;font-size:12px">No notes yet.</div>';
+  document.getElementById('crm-modal-notes').innerHTML = notesHtml;
+  document.getElementById('crm-modal-note-inp').value = '';
+  // Show/hide extra fields
+  document.getElementById('crm-modal-closed-wrap').style.display = lead.crm_stage === 'closed' ? '' : 'none';
+  document.getElementById('crm-modal-lost-wrap').style.display   = lead.crm_stage === 'lost'   ? '' : 'none';
+  if (lead.crm_closed_price) document.getElementById('crm-modal-price-inp').value = lead.crm_closed_price;
+  document.getElementById('crm-modal-bg').style.display = '';
+}
+
+function closeCRMModal() {
+  document.getElementById('crm-modal-bg').style.display = 'none';
+  _crmModalId = null;
+}
+
+async function saveCRMModal() {
+  var id = _crmModalId;
+  if (!id) return;
+  var lead = crmLeads.find(function(l){ return l.id === id; });
+  if (!lead) return;
+  var note      = document.getElementById('crm-modal-note-inp').value.trim();
+  var closePrice = document.getElementById('crm-modal-price-inp')?.value;
+  var lostReason = document.getElementById('crm-modal-lost-inp')?.value;
+  var updates = {};
+  if (note) updates.note = note;
+  if (closePrice) { updates.closed_price = parseInt(closePrice); lead.crm_closed_price = updates.closed_price; }
+  if (lostReason) { updates.lost_reason  = lostReason;  lead.crm_lost_reason  = lostReason; }
+  if (note) lead.crm_notes = [...(lead.crm_notes||[]), { text: note, ts: new Date().toISOString(), by: sessionStorage.getItem('fam_username') || '?' }];
+  closeCRMModal();
+  renderCRM();
+  if (Object.keys(updates).length) await crmUpdateLead(id, updates);
+}
 
 </script>
 </body>
