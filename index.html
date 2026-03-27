@@ -670,9 +670,11 @@ function applyRoleUI(role) {
     });
     showTab('crm');
   } else if (role === 'admin' || role === 'viewer') {
-    // Admins + viewers: no CRM, no Settings
+    // Admins + viewers: no CRM, no Bot tab, no Settings
     var crmTab = document.getElementById('tab-btn-crm');
     if (crmTab) crmTab.style.display = 'none';
+    var botTab = document.getElementById('tab-btn-bot');
+    if (botTab) botTab.style.display = 'none';
   } else if (role === 'owner') {
     // Owner: show Settings tab
     var stab = document.getElementById('tab-btn-settings');
