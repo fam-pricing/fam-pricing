@@ -1632,8 +1632,85 @@ function simAddBubble(from, text, extra) {
     wrapper.appendChild(note);
   }
 
+  // Challenge button — only on bot messages
+  if (!isLead) {
+    var challengeBtn = document.createElement('button');
+    challengeBtn.textContent = '↩ Challenge this response';
+    challengeBtn.style.cssText = 'margin-top:5px;padding:3px 10px;font-size:10px;font-weight:600;color:#64748b;background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;cursor:pointer;align-self:flex-start';
+    challengeBtn.onclick = function() {
+      challengeBtn.style.display = 'none';
+      var form = document.createElement('div');
+      form.style.cssText = 'margin-top:6px;display:flex;flex-direction:column;gap:6px;max-width:75%';
+      var ta = document.createElement('textarea');
+      ta.rows = 2;
+      ta.placeholder = 'What should it have said?';
+      ta.style.cssText = 'padding:8px 12px;border:1.5px solid #f59e0b;border-radius:10px;font-size:12px;font-family:inherit;resize:none;color:#1e293b;line-height:1.5;outline:none';
+      var actions = document.createElement('div');
+      actions.style.cssText = 'display:flex;gap:6px';
+      var saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Teach bot';
+      saveBtn.style.cssText = 'padding:5px 14px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer';
+      var cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.style.cssText = 'padding:5px 12px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer';
+      cancelBtn.onclick = function() { form.remove(); challengeBtn.style.display = ''; };
+      saveBtn.onclick = function() {
+        var rule = ta.value.trim();
+        if (!rule) return;
+        form.remove();
+        simTeach(rule, wrapper);
+      };
+      ta.onkeydown = function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveBtn.click(); }
+        if (e.key === 'Escape') { cancelBtn.click(); }
+      };
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+      form.appendChild(ta);
+      form.appendChild(actions);
+      wrapper.appendChild(form);
+      ta.focus();
+    };
+    wrapper.appendChild(challengeBtn);
+  }
+
   chat.appendChild(wrapper);
   chat.scrollTop = chat.scrollHeight;
+}
+
+async function simTeach(rule, bubbleWrapper) {
+  // Show a saving indicator inline
+  var saving = document.createElement('div');
+  saving.style.cssText = 'font-size:10px;color:#f59e0b;font-weight:600;margin-top:4px;padding:0 4px';
+  saving.textContent = '⏳ Saving to playbook…';
+  bubbleWrapper.appendChild(saving);
+
+  try {
+    var jwt = sessionStorage.getItem('fam_jwt') || '';
+    var resp = await fetch(FAM_API + '/api/crm/playground', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify({ action: 'teach', rule: rule }),
+    });
+    var data = await resp.json();
+    saving.remove();
+    var confirm = document.createElement('div');
+    if (resp.ok && data.ok) {
+      confirm.style.cssText = 'font-size:11px;color:#16a34a;font-weight:600;margin-top:4px;padding:0 4px;max-width:75%';
+      confirm.textContent = '✅ Saved to playbook: "' + data.saved_as + '"';
+    } else {
+      confirm.style.cssText = 'font-size:11px;color:#dc2626;font-weight:600;margin-top:4px;padding:0 4px';
+      confirm.textContent = '⚠️ Failed to save: ' + (data.error || resp.status);
+    }
+    bubbleWrapper.appendChild(confirm);
+    document.getElementById('sim-chat').scrollTop = document.getElementById('sim-chat').scrollHeight;
+  } catch (err) {
+    saving.remove();
+    var errEl = document.createElement('div');
+    errEl.style.cssText = 'font-size:11px;color:#dc2626;font-weight:600;margin-top:4px;padding:0 4px';
+    errEl.textContent = '⚠️ ' + (err.message || 'Save failed');
+    bubbleWrapper.appendChild(errEl);
+  }
 }
 
 function simAddTyping() {
