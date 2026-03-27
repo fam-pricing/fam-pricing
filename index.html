@@ -1430,14 +1430,8 @@ function renderCRM() {
 
 function crmCardHTML(l) {
   var timeAgo = crmTimeAgo(l.createdAt);
-  var pill = l.pf_status === 'REPLIED'
-    ? '<span class="crm-pill crm-pill-replied">Replied</span>'
-    : '<span class="crm-pill crm-pill-delivered">New</span>';
   var notesBadge = l.crm_notes && l.crm_notes.length
     ? '<span class="crm-pill crm-pill-note">💬 ' + l.crm_notes.length + '</span>' : '';
-  var waBtn = l.sender_phone
-    ? '<a class="crm-wa" href="https://wa.me/' + l.sender_phone.replace(/[^0-9+]/g,'') + '" target="_blank" onclick="event.stopPropagation()">WhatsApp</a>'
-    : '';
   var building = l.building + (l.bed_type ? ' · ' + l.bed_type : '');
   var agentTag = (sessionStorage.getItem('fam_role') === 'owner')
     ? '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">' + (l.agent_name || '—') + '</div>' : '';
@@ -1449,9 +1443,8 @@ function crmCardHTML(l) {
     + '<div class="crm-card-building">' + escH(building) + '</div>'
     + '<div class="crm-card-foot">'
     + '<span class="crm-card-time">' + timeAgo + '</span>'
-    + '<span style="display:flex;align-items:center;gap:3px">' + pill + notesBadge + '</span>'
+    + '<span style="display:flex;align-items:center;gap:3px">' + notesBadge + '</span>'
     + '</div>'
-    + (waBtn ? '<div style="margin-top:7px">' + waBtn + '</div>' : '')
     + '</div>';
 }
 
@@ -1520,13 +1513,11 @@ function openCRMModal(id) {
   if (!lead) return;
   _crmModalId = id;
   // Build info block
-  var waLink = lead.sender_phone
-    ? '<a class="crm-wa" href="https://wa.me/' + lead.sender_phone.replace(/[^0-9+]/g,'') + '" target="_blank">Open WhatsApp</a>' : '—';
   var info = '<b>' + escH(lead.sender_name) + '</b><br>'
-    + '📞 ' + (lead.sender_phone || '—') + ' ' + waLink + '<br>'
+    + '📞 ' + (lead.sender_phone || '—') + '<br>'
     + '🏢 ' + escH(lead.building) + (lead.bed_type ? ' · ' + lead.bed_type : '') + '<br>'
     + '👤 ' + escH(lead.agent_name || '—') + '<br>'
-    + '⏱ ' + crmTimeAgo(lead.createdAt) + ' · PF: ' + lead.pf_status;
+    + '⏱ ' + crmTimeAgo(lead.createdAt);
   if (lead.crm_closed_price) info += '<br>✅ Closed at AED ' + Number(lead.crm_closed_price).toLocaleString() + '/mo';
   document.getElementById('crm-modal-info').innerHTML = info;
   document.getElementById('crm-modal-title').textContent = lead.sender_name || 'Lead Detail';
