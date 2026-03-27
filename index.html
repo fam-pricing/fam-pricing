@@ -1694,8 +1694,8 @@ async function loadTrengoThread(leadId) {
     msgs.innerHTML = messages.map(function(m) {
       var isAgent = m.from === 'agent';
       var bubbleStyle = isAgent
-        ? 'align-self:flex-end;background:#dcfce7;color:#166534;border-radius:14px 14px 4px 14px;'
-        : 'align-self:flex-start;background:#f1f5f9;color:#1e293b;border-radius:14px 14px 14px 4px;';
+        ? 'align-self:flex-start;background:#f1f5f9;color:#1e293b;border-radius:14px 14px 14px 4px;'
+        : 'align-self:flex-end;background:#dcfce7;color:#166534;border-radius:14px 14px 4px 14px;';
       var time = m.time ? new Date(m.time).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
       return '<div style="max-width:80%;padding:8px 12px;font-size:12px;line-height:1.5;' + bubbleStyle + '">'
         + '<div style="font-weight:600;font-size:10px;margin-bottom:3px;opacity:0.7">' + escH(m.author) + '</div>'
