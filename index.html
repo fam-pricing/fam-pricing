@@ -1454,6 +1454,7 @@ var crmLeads = [];
 var crmLoaded = false;
 var _crmDragId = null;
 var _crmModalId = null;
+var _crmLeadName = null;
 
 var CRM_STAGES = [
   { id:'new',        label:'New',       cls:'crm-col-new'       },
@@ -1589,6 +1590,7 @@ function openCRMModal(id) {
   var lead = crmLeads.find(function(l){ return l.id === id; });
   if (!lead) return;
   _crmModalId = id;
+  _crmLeadName = lead.sender_name || 'Lead';
   // Build info block
   var info = '<b>' + escH(lead.sender_name) + '</b><br>'
     + '📞 ' + (lead.sender_phone || '—') + '<br>'
@@ -1641,11 +1643,11 @@ function toggleTrengoPanel() {
   } else {
     panel.style.display = '';
     document.getElementById('crm-trengo-btn').textContent = '💬 Hide Chat';
-    if (!_trengoLoaded) loadTrengoThread(_crmModalId);
+    if (!_trengoLoaded) loadTrengoThread(_crmModalId, _crmLeadName);
   }
 }
 
-async function loadTrengoThread(leadId) {
+async function loadTrengoThread(leadId, leadName) {
   if (!leadId) return;
   _trengoLoaded = true;
   var loading  = document.getElementById('crm-trengo-loading');
@@ -1659,7 +1661,7 @@ async function loadTrengoThread(leadId) {
 
   try {
     var jwtToken = sessionStorage.getItem('fam_jwt');
-    var resp = await fetch('https://fam-pricing.vercel.app/api/crm/trengo-thread?lead_id=' + encodeURIComponent(leadId), {
+    var resp = await fetch('https://fam-pricing.vercel.app/api/crm/trengo-thread?lead_id=' + encodeURIComponent(leadId) + '&lead_name=' + encodeURIComponent(leadName || 'Lead'), {
       headers: { Authorization: 'Bearer ' + jwtToken }
     });
     var data = await resp.json();
