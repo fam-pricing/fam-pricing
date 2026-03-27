@@ -649,6 +649,40 @@ async function publishPrice(btn) {
     }, 2000);
   }
 }
+async function unpublishListing(btn) {
+  var ref = btn.getAttribute('data-ref');
+  if (!confirm('Unpublish ' + ref + ' from Property Finder?\n\nThis will remove the listing from the portal immediately.')) return;
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    var jwt = sessionStorage.getItem('fam_jwt') || '';
+    var r = await fetch(FAM_API + '/api/unpublish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify({ ref: ref })
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.detail || data.error || 'Unpublish failed');
+    btn.textContent = '✓ Unpublished';
+    btn.style.background = '#6b7280';
+    setTimeout(function() {
+      if (confirm('Listing unpublished from PF ✓  Sync the dashboard now to update?')) syncFromAPI();
+      btn.textContent = 'Unpublish ↓';
+      btn.style.background = '#dc2626';
+      btn.disabled = false;
+    }, 800);
+  } catch (err) {
+    console.error('[unpublishListing]', err);
+    btn.textContent = '✗ Error';
+    alert('Failed to unpublish: ' + err.message);
+    setTimeout(function() {
+      btn.textContent = 'Unpublish ↓';
+      btn.style.background = '#dc2626';
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
 
 function renderHeader() {
     var dates = {};
@@ -887,7 +921,7 @@ function renderPublished() {
     if (pubSearchTerm) rows = rows.filter(function(r){ return r.building.toLowerCase().indexOf(pubSearchTerm) !== -1; });
     var countEl = document.getElementById('pub-search-count');
     if (countEl) countEl.textContent = pubSearchTerm ? rows.length + ' result' + (rows.length !== 1 ? 's' : '') : '';
-    var t = "<table><thead><tr><th>Building</th><th>Area</th><th>Bed</th><th>Published</th><th>New Price</th><th>Publish</th><th>Market Avg</th><th>vs Market</th><th>Mkt Low</th><th>Mkt High</th><th>PF Tier</th></tr></thead><tbody>";
+    var t = "<table><thead><tr><th>Building</th><th>Area</th><th>Bed</th><th>Published</th><th>New Price</th><th>Actions</th><th>Market Avg</th><th>vs Market</th><th>Mkt Low</th><th>Mkt High</th><th>PF Tier</th></tr></thead><tbody>";
     for (var i=0; i<rows.length; i++) {
         var r = rows[i];
         var diff2 = r.pf_avg ? (r.pub_price-r.pf_avg)/r.pf_avg*100 : null;
@@ -930,17 +964,22 @@ function renderPublished() {
         var pubLink = listingUrl
           ? "<a href=\""+listingUrl+"\" target=\"_blank\" style=\"color:#0d9488;font-weight:700;text-decoration:none;border-bottom:1px dashed #0d9488\" title=\"View this listing on Property Finder\">"+fmtAED(r.pub_price)+" ↗</a>"
           : "<span style=\"color:#0d9488;font-weight:700\">"+fmtAED(r.pub_price)+"</span>";
-        var isAdmin = sessionStorage.getItem('fam_role') === 'admin';
+        var _role = sessionStorage.getItem('fam_role');
+        var isAdmin = (_role === 'admin' || _role === 'owner');
+        var isOwner = (_role === 'owner');
         var priceInp = (rowRef && isAdmin)
           ? '<input type="number" class="price-inp" data-ref="'+rowRef+'" placeholder="AED" style="width:80px;padding:3px 5px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;text-align:right">'
           : '<span style="color:#94a3b8;font-size:11px">—</span>';
         var pubBtn = (rowRef && isAdmin)
           ? '<button class="pub-btn" data-ref="'+rowRef+'" onclick="publishPrice(this)" style="padding:3px 8px;background:#0d9488;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">Publish &#8593;</button>'
           : '';
+        var unpubBtn = (rowRef && isOwner)
+          ? '<button class="unpub-btn" data-ref="'+rowRef+'" onclick="unpublishListing(this)" style="padding:3px 8px;background:#dc2626;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px" title="Unpublish this listing from Property Finder">Unpublish &#8595;</button>'
+          : '';
         t += "<tr><td>"+bldgCell+"</td><td>"+r.neighborhood+"</td><td><b>"+r.bed_type+"</b></td>" +
              "<td>"+pubLink+"</td>" +
              "<td style='white-space:nowrap'>"+priceInp+"</td>" +
-             "<td>"+pubBtn+"</td>" +
+             "<td style='white-space:nowrap'>"+pubBtn+unpubBtn+"</td>" +
              "<td>"+fmtAED(r.pf_avg)+"</td><td>"+diffStr+"</td>" +
              "<td>"+fmtAED(r.pf_low)+"</td><td>"+fmtAED(r.pf_high)+"</td>" + tierCell + "</tr>";
     }
