@@ -2079,6 +2079,13 @@ function buildDayPanel(title, leads, dateStr) {
 // ── Parse viewing date from free-text string ──────────────────────────────
 function parseViewingDate(text) {
   if (!text) return null;
+
+  // ── ISO format first: "2026-03-29" or "2026-03-29 12:00" ──────────────
+  var isoMatch = text.match(/^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?/);
+  if (isoMatch) {
+    return { date: isoMatch[1], time: isoMatch[2] || '' };
+  }
+
   var lower = text.toLowerCase();
   var now = new Date();
   var dubaiNow = new Date(now.getTime() + 4 * 3600000);
