@@ -140,18 +140,23 @@ tbody tr:last-child td { border-bottom:none; }
 @media(max-width:900px) { .grid2,.grid3 { grid-template-columns:1fr; } }
 
 
+/* ── CRM Redesign ───────────────────────────────────────── */
+.crm-subtabs{display:flex;gap:4px;margin-bottom:16px;background:#f1f5f9;border-radius:8px;padding:4px}
+.crm-subtab{flex:1;text-align:center;padding:7px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#64748b;transition:all .15s}
+.crm-subtab.active{background:#fff;color:#0d9488;box-shadow:0 1px 4px rgba(0,0,0,.1)}
 /* ── CRM Kanban ─────────────────────────────────────────── */
-.crm-board{display:flex;gap:12px;padding:4px 0 16px;overflow-x:auto;min-height:480px;align-items:flex-start}
-.crm-col{flex:0 0 210px;background:#f1f5f9;border-radius:10px;padding:10px;display:flex;flex-direction:column}
-.crm-col-hdr{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;color:#fff}
+.crm-board{display:flex;gap:12px;padding:4px 0 16px;overflow-x:auto;min-height:420px;align-items:flex-start}
+.crm-col{flex:0 0 190px;background:#f1f5f9;border-radius:10px;padding:10px;display:flex;flex-direction:column}
+.crm-col-hdr{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;color:#fff}
 .crm-col-hdr .crm-badge{background:rgba(255,255,255,.25);border-radius:12px;padding:1px 7px;font-size:11px}
 .crm-col-body{flex:1;min-height:80px;border-radius:6px;transition:background .15s}
 .crm-col-body.drag-over{background:rgba(99,102,241,.1);outline:2px dashed #6366f1}
 .crm-col-new .crm-col-hdr{background:#3b82f6}
 .crm-col-contacted .crm-col-hdr{background:#f59e0b}
+.crm-col-negotiation .crm-col-hdr{background:#f97316}
 .crm-col-viewing .crm-col-hdr{background:#8b5cf6}
 .crm-col-closed .crm-col-hdr{background:#10b981}
-.crm-col-lost .crm-col-hdr{background:#ef4444}
+.crm-col-lost .crm-col-hdr{background:#94a3b8}
 .crm-card{background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.07);border:1px solid #e2e8f0;transition:box-shadow .15s,transform .1s;user-select:none}
 .crm-card:active{cursor:grabbing}
 .crm-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.11);transform:translateY(-1px)}
@@ -173,6 +178,32 @@ tbody tr:last-child td { border-bottom:none; }
 .crm-note-meta{font-size:10px;color:#94a3b8;margin-top:2px}
 .crm-modal-btn{background:#0d9488;color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer}
 .crm-modal-btn.sec{background:#f1f5f9;color:#374151}
+/* ── CRM Summary ────────────────────────────────────────── */
+.crm-day-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px}
+.crm-day-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px}
+.crm-day-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.crm-day-title{font-size:14px;font-weight:700;color:#1e293b}
+.crm-day-sub{font-size:11px;color:#94a3b8;margin-top:1px}
+.crm-day-total{font-size:24px;font-weight:800;color:#0d9488}
+.crm-status-grp{margin-bottom:10px}
+.crm-status-lbl{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.crm-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.crm-status-name{font-size:12px;font-weight:600;color:#374151}
+.crm-status-count{margin-left:auto;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px}
+.crm-lead-row{display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:#f8fafc;border-radius:6px;margin-bottom:3px;cursor:pointer;transition:background .1s}
+.crm-lead-row:hover{background:#f1f5f9}
+.crm-lead-name{font-size:12px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-lead-loc{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ── CRM Calendar ───────────────────────────────────────── */
+.crm-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:4px}
+.crm-cal-day{border-radius:10px;padding:10px;min-height:130px}
+.crm-cal-day-name{font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:2px}
+.crm-cal-day-num{font-size:18px;font-weight:800;margin-bottom:8px}
+.crm-cal-event{background:#fff;border:1px solid #ddd6fe;border-left:3px solid #8b5cf6;border-radius:6px;padding:6px 8px;margin-bottom:5px;cursor:pointer;transition:box-shadow .1s}
+.crm-cal-event:hover{box-shadow:0 2px 8px rgba(139,92,246,.2)}
+.crm-cal-time{font-size:10px;font-weight:700;color:#8b5cf6;margin-bottom:2px}
+.crm-cal-ename{font-size:11px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-cal-eloc{font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 </style>
 </head>
@@ -265,13 +296,14 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="card"><div class="card-title">Listing Volume Trend</div><div class="chart-box-sm"><canvas id="ch-tr-vol"></canvas></div></div>
 </div>
 <div class="panel" id="panel-crm">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <h3 style="margin:0;font-size:16px;font-weight:700;color:#1e293b">Lead Pipeline</h3>
+      <h3 style="margin:0;font-size:16px;font-weight:700;color:#1e293b">CRM</h3>
       <span id="crm-status" style="font-size:11px;color:#94a3b8"></span>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <select id="crm-agent-filter" style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;display:none" onchange="renderCRM()">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <select id="crm-agent-filter" style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;display:none" onchange="crmRefreshView()">
         <option value="">All Agents</option>
         <option value="afifa">Afifa</option>
         <option value="ahmed">Ahmed</option>
@@ -288,8 +320,25 @@ tbody tr:last-child td { border-bottom:none; }
       <button onclick="loadCRM()" style="background:#0d9488;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">&#8635; Refresh</button>
     </div>
   </div>
-  <div id="crm-board" class="crm-board">
-    <div style="color:#94a3b8;font-size:13px;padding:20px">Click Refresh to load leads…</div>
+  <!-- Sub-tabs -->
+  <div class="crm-subtabs">
+    <button class="crm-subtab active" id="crm-tab-summary"  onclick="setCRMView('summary')">&#128202; Summary</button>
+    <button class="crm-subtab"        id="crm-tab-pipeline" onclick="setCRMView('pipeline')">&#9776; Pipeline</button>
+    <button class="crm-subtab"        id="crm-tab-calendar" onclick="setCRMView('calendar')">&#128197; Calendar</button>
+  </div>
+  <!-- Summary View -->
+  <div id="crm-view-summary">
+    <div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center">Click Refresh to load leads…</div>
+  </div>
+  <!-- Pipeline View -->
+  <div id="crm-view-pipeline" style="display:none">
+    <div id="crm-board" class="crm-board">
+      <div style="color:#94a3b8;font-size:13px;padding:20px">Click Refresh to load leads…</div>
+    </div>
+  </div>
+  <!-- Calendar View -->
+  <div id="crm-view-calendar" style="display:none">
+    <div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center">Click Refresh to load leads…</div>
   </div>
 </div>
 
@@ -1922,12 +1971,242 @@ var _crmModalId = null;
 var _crmLeadName = null;
 
 var CRM_STAGES = [
-  { id:'new',        label:'New',       cls:'crm-col-new'       },
-  { id:'contacted',  label:'Contacted', cls:'crm-col-contacted' },
-  { id:'viewing',    label:'Viewing',   cls:'crm-col-viewing'   },
-  { id:'closed',     label:'Closed',    cls:'crm-col-closed'    },
-  { id:'lost',       label:'Lost',      cls:'crm-col-lost'      },
+  { id:'new',        label:'Under Communication', cls:'crm-col-new'       },
+  { id:'contacted',  label:'In Contact',          cls:'crm-col-contacted' },
+  { id:'negotiation', label:'Negotiating',      cls:'crm-col-negotiation' },
+  { id:'viewing',     label:'Pending Viewing',  cls:'crm-col-viewing'     },
+  { id:'closed',      label:'Closed',           cls:'crm-col-closed'      },
+  { id:'lost',        label:'Not Interested',   cls:'crm-col-lost'        },
 ];
+
+// ── Summary status groups ─────────────────────────────────────────────────
+var CRM_SUMMARY_GROUPS = [
+  { label:'Under Communication', stages:['new','contacted'], color:'#3b82f6', bg:'#eff6ff' },
+  { label:'Negotiating',         stages:['negotiation'],     color:'#f97316', bg:'#fff7ed' },
+  { label:'Pending Viewing',     stages:['viewing'],         color:'#8b5cf6', bg:'#f5f3ff' },
+  { label:'Closed',              stages:['closed'],          color:'#10b981', bg:'#f0fdf4' },
+  { label:'Not Interested',      stages:['lost'],            color:'#94a3b8', bg:'#f8fafc' },
+];
+
+// ── CRM view switcher ─────────────────────────────────────────────────────
+var _crmView = 'summary';
+function setCRMView(view) {
+  _crmView = view;
+  ['summary','pipeline','calendar'].forEach(function(v) {
+    var el  = document.getElementById('crm-view-' + v);
+    var tab = document.getElementById('crm-tab-' + v);
+    if (el)  el.style.display = (v === view) ? '' : 'none';
+    if (tab) { tab.classList.toggle('active', v === view); }
+  });
+  if (view === 'summary')  renderCRMSummary();
+  if (view === 'pipeline') renderCRM();
+  if (view === 'calendar') renderViewingCalendar();
+}
+
+function crmRefreshView() {
+  if (_crmView === 'summary')  renderCRMSummary();
+  if (_crmView === 'pipeline') renderCRM();
+  if (_crmView === 'calendar') renderViewingCalendar();
+}
+
+// ── Dubai date helper ─────────────────────────────────────────────────────
+function getDubaiDateStr(date) {
+  var d = new Date(date.getTime() + 4 * 3600000);
+  return d.toISOString().slice(0, 10);
+}
+
+// ── Summary View ──────────────────────────────────────────────────────────
+function renderCRMSummary() {
+  var el = document.getElementById('crm-view-summary');
+  if (!el) return;
+  if (!crmLoaded) { el.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center">Click Refresh to load leads…</div>'; return; }
+
+  var agentF = (document.getElementById('crm-agent-filter')?.value || '').trim();
+  var leads  = agentF ? crmLeads.filter(function(l){ return l.agent_username === agentF; }) : crmLeads;
+
+  var now      = new Date();
+  var todayStr = getDubaiDateStr(now);
+  var yestStr  = getDubaiDateStr(new Date(now.getTime() - 86400000));
+
+  var todayLeads = leads.filter(function(l){ return getDubaiDateStr(new Date(l.createdAt)) === todayStr; });
+  var yestLeads  = leads.filter(function(l){ return getDubaiDateStr(new Date(l.createdAt)) === yestStr; });
+
+  el.innerHTML =
+    '<div class="crm-day-grid">' +
+    buildDayPanel('Today',     todayLeads, todayStr) +
+    buildDayPanel('Yesterday', yestLeads,  yestStr)  +
+    '</div>';
+}
+
+function buildDayPanel(title, leads, dateStr) {
+  var d    = new Date(dateStr + 'T12:00:00Z');
+  var label = d.toLocaleDateString('en-AE', { weekday:'long', month:'short', day:'numeric' });
+
+  var html = '<div class="crm-day-card">';
+  html += '<div class="crm-day-hdr">';
+  html += '<div><div class="crm-day-title">' + title + '</div><div class="crm-day-sub">' + label + '</div></div>';
+  html += '<div class="crm-day-total">' + leads.length + '</div>';
+  html += '</div>';
+
+  if (leads.length === 0) {
+    html += '<div style="text-align:center;color:#cbd5e1;font-size:13px;padding:20px 0">No leads</div>';
+  } else {
+    CRM_SUMMARY_GROUPS.forEach(function(g) {
+      var grp = leads.filter(function(l){ return g.stages.indexOf(l.crm_stage) >= 0; });
+      if (!grp.length) return;
+      html += '<div class="crm-status-grp">';
+      html += '<div class="crm-status-lbl">';
+      html += '<span class="crm-status-dot" style="background:' + g.color + '"></span>';
+      html += '<span class="crm-status-name">' + g.label + '</span>';
+      html += '<span class="crm-status-count" style="color:' + g.color + ';background:' + g.bg + '">' + grp.length + '</span>';
+      html += '</div>';
+      grp.forEach(function(l) {
+        var loc = l.building + (l.bed_type ? ' · ' + l.bed_type : '');
+        html += '<div class="crm-lead-row" onclick="openCRMModal(\'' + l.id + '\')">';
+        html += '<div style="min-width:0;flex:1">';
+        html += '<div class="crm-lead-name">' + escH(l.sender_name) + '</div>';
+        html += '<div class="crm-lead-loc">' + escH(loc) + '</div>';
+        html += '</div>';
+        if (l.crm_viewing_requested) {
+          html += '<span style="flex-shrink:0;font-size:9px;background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:4px">&#128065;</span>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Parse viewing date from free-text string ──────────────────────────────
+function parseViewingDate(text) {
+  if (!text) return null;
+  var lower = text.toLowerCase();
+  var now = new Date();
+  var dubaiNow = new Date(now.getTime() + 4 * 3600000);
+  var todayDow = dubaiNow.getUTCDay();
+  var days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+
+  var targetDate = null;
+
+  if (lower.includes('today')) {
+    targetDate = new Date(dubaiNow); targetDate.setUTCHours(0,0,0,0);
+  } else if (lower.includes('tomorrow')) {
+    targetDate = new Date(dubaiNow); targetDate.setUTCHours(0,0,0,0);
+    targetDate.setUTCDate(targetDate.getUTCDate() + 1);
+  } else {
+    // Try "Month DD" pattern first (e.g. "March 29", "March 30")
+    var monthMatch = text.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})\b/i);
+    if (monthMatch) {
+      var parsed = new Date(monthMatch[0] + ' 2026 12:00:00 UTC');
+      if (!isNaN(parsed)) targetDate = parsed;
+    }
+    // Fallback: day-of-week offset
+    if (!targetDate) {
+      for (var i = 0; i < days.length; i++) {
+        if (lower.includes(days[i])) {
+          var diff = (i - todayDow + 7) % 7 || 7;
+          targetDate = new Date(dubaiNow);
+          targetDate.setUTCHours(0,0,0,0);
+          targetDate.setUTCDate(targetDate.getUTCDate() + diff);
+          break;
+        }
+      }
+    }
+  }
+
+  if (!targetDate) return null;
+
+  // Time: "at 12pm", "at 10am", "at 10:30am", "12-1pm"
+  var timeStr = '';
+  var tMatch = text.match(/at\s+(\d+)(?::(\d+))?\s*(am|pm)?/i);
+  if (tMatch) {
+    var h = parseInt(tMatch[1]), m = tMatch[2] ? parseInt(tMatch[2]) : 0;
+    var ap = (tMatch[3] || '').toLowerCase();
+    if (ap === 'pm' && h < 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+    timeStr = h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0');
+  } else {
+    var rMatch = text.match(/(\d+)-\d+\s*(am|pm)/i);
+    if (rMatch) {
+      var h = parseInt(rMatch[1]);
+      if ((rMatch[2]||'').toLowerCase() === 'pm' && h < 12) h += 12;
+      timeStr = h.toString().padStart(2,'0') + ':00';
+    }
+  }
+
+  return { date: getDubaiDateStr(targetDate), time: timeStr };
+}
+
+// ── Calendar View ─────────────────────────────────────────────────────────
+function renderViewingCalendar() {
+  var el = document.getElementById('crm-view-calendar');
+  if (!el) return;
+  if (!crmLoaded) { el.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center">Click Refresh to load leads…</div>'; return; }
+
+  var agentF = (document.getElementById('crm-agent-filter')?.value || '').trim();
+  var leads  = agentF ? crmLeads.filter(function(l){ return l.agent_username === agentF; }) : crmLeads;
+
+  var now = new Date();
+  var dubaiNow = new Date(now.getTime() + 4 * 3600000);
+  var todayDow = dubaiNow.getUTCDay();
+  var mondayOff = (todayDow === 0) ? -6 : 1 - todayDow;
+  var weekDays = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(dubaiNow); d.setUTCHours(0,0,0,0);
+    d.setUTCDate(d.getUTCDate() + mondayOff + i);
+    weekDays.push(d);
+  }
+  var todayStr = getDubaiDateStr(dubaiNow);
+  var dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Collect viewings that fall in this week
+  var viewings = [];
+  leads.forEach(function(l) {
+    if (!l.crm_viewing_requested) return;
+    var p = parseViewingDate(l.crm_viewing_requested);
+    if (!p) return;
+    var inWeek = weekDays.some(function(d){ return getDubaiDateStr(d) === p.date; });
+    if (inWeek) viewings.push({ lead:l, parsed:p });
+  });
+
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+  html += '<div style="font-size:13px;font-weight:700;color:#1e293b">';
+  html += weekDays[0].toLocaleDateString('en-AE',{month:'short',day:'numeric'}) + ' – ' + weekDays[6].toLocaleDateString('en-AE',{month:'short',day:'numeric'});
+  html += '</div>';
+  html += '<div style="font-size:12px;color:#94a3b8">' + viewings.length + ' viewing' + (viewings.length===1?'':'s') + ' this week</div>';
+  html += '</div>';
+  html += '<div class="crm-cal-grid">';
+
+  weekDays.forEach(function(d, i) {
+    var dateStr = getDubaiDateStr(d);
+    var isToday = dateStr === todayStr;
+    var dayVs   = viewings.filter(function(v){ return v.parsed.date === dateStr; });
+    dayVs.sort(function(a,b){ return (a.parsed.time||'') > (b.parsed.time||'') ? 1 : -1; });
+
+    html += '<div class="crm-cal-day" style="background:' + (isToday?'#f0fdf4':'#f8fafc') + ';border:' + (isToday?'2px solid #10b981':'1px solid #e2e8f0') + '">';
+    html += '<div class="crm-cal-day-name" style="color:' + (isToday?'#10b981':'#94a3b8') + '">' + dayNames[i] + '</div>';
+    html += '<div class="crm-cal-day-num" style="color:' + (isToday?'#10b981':'#1e293b') + '">' + d.getUTCDate() + '</div>';
+
+    if (dayVs.length === 0) {
+      html += '<div style="font-size:11px;color:#cbd5e1;text-align:center;margin-top:10px">—</div>';
+    } else {
+      dayVs.forEach(function(v) {
+        var loc = v.lead.building + (v.lead.bed_type ? ' · ' + v.lead.bed_type : '');
+        html += '<div class="crm-cal-event" onclick="openCRMModal(\'' + v.lead.id + '\')">';
+        if (v.parsed.time) html += '<div class="crm-cal-time">' + v.parsed.time + '</div>';
+        html += '<div class="crm-cal-ename">' + escH(v.lead.sender_name) + '</div>';
+        html += '<div class="crm-cal-eloc">' + escH(loc) + '</div>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
 
 async function loadCRM(days) {
   days = days || parseInt(document.getElementById('crm-days-filter')?.value || '7');
@@ -1946,7 +2225,7 @@ async function loadCRM(days) {
     // Show agent filter for owner
     var filterEl = document.getElementById('crm-agent-filter');
     if (filterEl && sessionStorage.getItem('fam_role') === 'owner') filterEl.style.display = '';
-    renderCRM();
+    crmRefreshView();
   } catch(err) {
     if (statusEl) statusEl.textContent = '✗ ' + err.message;
     console.error('[CRM] loadCRM error', err);
