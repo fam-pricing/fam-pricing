@@ -2143,7 +2143,7 @@ function parseViewingDate(text) {
   return { date: getDubaiDateStr(targetDate), time: timeStr };
 }
 
-// ── Calendar View ─────────────────────────────────────────────────────────
+// ── Calendar View (Monthly) ────────────────────────────────────────────────
 function renderViewingCalendar() {
   var el = document.getElementById('crm-view-calendar');
   if (!el) return;
@@ -2154,59 +2154,58 @@ function renderViewingCalendar() {
 
   var now = new Date();
   var dubaiNow = new Date(now.getTime() + 4 * 3600000);
-  var todayDow = dubaiNow.getUTCDay();
-  var mondayOff = (todayDow === 0) ? -6 : 1 - todayDow;
-  var weekDays = [];
-  for (var i = 0; i < 7; i++) {
-    var d = new Date(dubaiNow); d.setUTCHours(0,0,0,0);
-    d.setUTCDate(d.getUTCDate() + mondayOff + i);
-    weekDays.push(d);
-  }
   var todayStr = getDubaiDateStr(dubaiNow);
-  var dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-  // Collect viewings that fall in this week
+  if (window.calYear  == null) window.calYear  = dubaiNow.getUTCFullYear();
+  if (window.calMonth == null) window.calMonth = dubaiNow.getUTCMonth();
+  var year = window.calYear, month = window.calMonth;
+
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dayNames   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var totalDays  = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  var firstDow   = new Date(Date.UTC(year, month, 1)).getUTCDay();
+  var startOff   = (firstDow === 0) ? 6 : firstDow - 1;
+  var monthKey   = year + '-' + String(month + 1).padStart(2, '0');
+
   var viewings = [];
   leads.forEach(function(l) {
     if (!l.crm_viewing_requested) return;
     var p = parseViewingDate(l.crm_viewing_requested);
-    if (!p) return;
-    var inWeek = weekDays.some(function(d){ return getDubaiDateStr(d) === p.date; });
-    if (inWeek) viewings.push({ lead:l, parsed:p });
+    if (!p || p.date.slice(0,7) !== monthKey) return;
+    viewings.push({ lead:l, parsed:p });
   });
 
-  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  html += '<div style="font-size:13px;font-weight:700;color:#1e293b">';
-  html += weekDays[0].toLocaleDateString('en-AE',{month:'short',day:'numeric'}) + ' – ' + weekDays[6].toLocaleDateString('en-AE',{month:'short',day:'numeric'});
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  html += '<button onclick="window.calMonth--;if(window.calMonth<0){window.calMonth=11;window.calYear--;}renderViewingCalendar();" style="background:#f1f5f9;border:none;border-radius:6px;padding:5px 14px;cursor:pointer;font-size:16px;line-height:1">‹</button>';
+  html += '<div style="font-size:14px;font-weight:700;color:#1e293b">' + monthNames[month] + ' ' + year + '</div>';
+  html += '<button onclick="window.calMonth++;if(window.calMonth>11){window.calMonth=0;window.calYear++;}renderViewingCalendar();" style="background:#f1f5f9;border:none;border-radius:6px;padding:5px 14px;cursor:pointer;font-size:16px;line-height:1">›</button>';
   html += '</div>';
-  html += '<div style="font-size:12px;color:#94a3b8">' + viewings.length + ' viewing' + (viewings.length===1?'':'s') + ' this week</div>';
-  html += '</div>';
-  html += '<div class="crm-cal-grid">';
+  html += '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">' + viewings.length + ' viewing' + (viewings.length===1?'':'s') + ' this month</div>';
 
-  weekDays.forEach(function(d, i) {
-    var dateStr = getDubaiDateStr(d);
+  html += '<div class="crm-cal-grid" style="gap:4px">';
+  dayNames.forEach(function(n){ html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;text-align:center;padding:4px 0">' + n + '</div>'; });
+  for (var i = 0; i < startOff; i++) html += '<div class="crm-cal-day" style="min-height:80px;background:#f8fafc;border:1px solid #f1f5f9;opacity:0.4"></div>';
+
+  for (var day = 1; day <= totalDays; day++) {
+    var dateStr = monthKey + '-' + String(day).padStart(2,'0');
     var isToday = dateStr === todayStr;
     var dayVs   = viewings.filter(function(v){ return v.parsed.date === dateStr; });
     dayVs.sort(function(a,b){ return (a.parsed.time||'') > (b.parsed.time||'') ? 1 : -1; });
-
-    html += '<div class="crm-cal-day" style="background:' + (isToday?'#f0fdf4':'#f8fafc') + ';border:' + (isToday?'2px solid #10b981':'1px solid #e2e8f0') + '">';
-    html += '<div class="crm-cal-day-name" style="color:' + (isToday?'#10b981':'#94a3b8') + '">' + dayNames[i] + '</div>';
-    html += '<div class="crm-cal-day-num" style="color:' + (isToday?'#10b981':'#1e293b') + '">' + d.getUTCDate() + '</div>';
-
-    if (dayVs.length === 0) {
-      html += '<div style="font-size:11px;color:#cbd5e1;text-align:center;margin-top:10px">—</div>';
-    } else {
-      dayVs.forEach(function(v) {
-        var loc = v.lead.building + (v.lead.bed_type ? ' · ' + v.lead.bed_type : '');
-        html += '<div class="crm-cal-event" onclick="openCRMModal(\'' + v.lead.id + '\')">';
-        if (v.parsed.time) html += '<div class="crm-cal-time">' + v.parsed.time + '</div>';
-        html += '<div class="crm-cal-ename">' + escH(v.lead.sender_name) + '</div>';
-        html += '<div class="crm-cal-eloc">' + escH(loc) + '</div>';
-        html += '</div>';
-      });
-    }
+    html += '<div class="crm-cal-day" style="min-height:80px;background:' + (isToday?'#f0fdf4':'#f8fafc') + ';border:' + (isToday?'2px solid #10b981':'1px solid #e2e8f0') + '">';
+    html += '<div style="font-size:13px;font-weight:700;color:' + (isToday?'#10b981':'#1e293b') + ';margin-bottom:4px">' + day + '</div>';
+    dayVs.forEach(function(v) {
+      var loc = v.lead.building + (v.lead.bed_type ? ' · ' + v.lead.bed_type : '');
+      html += '<div class="crm-cal-event" onclick="openCRMModal('' + v.lead.id + '')">';
+      if (v.parsed.time) html += '<div class="crm-cal-time">' + v.parsed.time + '</div>';
+      html += '<div class="crm-cal-ename">' + escH(v.lead.sender_name) + '</div>';
+      html += '<div class="crm-cal-eloc">' + escH(loc) + '</div>';
+      html += '</div>';
+    });
     html += '</div>';
-  });
+  }
+  var totalCells = startOff + totalDays;
+  var rem = (7 - (totalCells % 7)) % 7;
+  for (var i = 0; i < rem; i++) html += '<div class="crm-cal-day" style="min-height:80px;background:#f8fafc;border:1px solid #f1f5f9;opacity:0.4"></div>';
 
   html += '</div>';
   el.innerHTML = html;
