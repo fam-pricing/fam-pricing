@@ -1285,40 +1285,67 @@ var _LISTING_REF_MAP = (function() {
 
 
 function renderPublished() {
-    // Overlay live prices from Sync — Sync is the sole source of truth for pub_price
-    var liveP = window._LIVE_PORTAL_PRICES || {};
-    var hasLive = Object.keys(liveP).length > 0;
-    var enriched = hasLive ? filtered.map(function(m) {
-        var k = m.building + '|' + m.bed_type;
-        var lp = liveP[k];
-        return lp ? Object.assign({}, m, { pub_price: lp }) : m;
-    }) : filtered;
-    var pub = enriched.filter(function(m){ return m.pub_price; });
-    var withMkt = pub.filter(function(m){ return m.pf_avg; });
-    var below = withMkt.filter(function(m){ return m.pub_price < m.pf_avg; });
-    var above = withMkt.filter(function(m){ return m.pub_price >= m.pf_avg; });
-    var diffs = withMkt.map(function(m){ return (m.pub_price-m.pf_avg)/m.pf_avg*100; });
-    var avgDiff = diffs.length ? avg(diffs) : null;
-    var pctCov = filtered.length ? Math.round(pub.length/filtered.length*100) : 0;
+    // Drive from LISTING_TIERS (fam's actual listings), not market data rows.
+    // This ensures ALL 52 published listings show, even if bed type differs from market data.
+    var liveP    = window._LIVE_PORTAL_PRICES || {};
+    var hasLive  = Object.keys(liveP).length > 0;
+    var srcTiers = (hasLive && window._LIVE_LISTING_TIERS && window._LIVE_LISTING_TIERS.length)
+                   ? window._LIVE_LISTING_TIERS : (typeof LISTING_TIERS !== 'undefined' ? LISTING_TIERS : []);
 
-    var adStr = avgDiff !== null ? (avgDiff>=0?"+":"")+avgDiff.toFixed(1)+"%" : "-";
+    // Build market data lookup keyed by building|bed_type
+    var mktLookup = {};
+    MKT.forEach(function(m) { mktLookup[m.building + '|' + m.bed_type] = m; });
+
+    // One row per building|bed combo — lowest price wins
+    var comboMap = {};
+    srcTiers.forEach(function(t) {
+        if (!t.building || t.hotel) return;
+        var k = t.building + '|' + t.bed;
+        var price = liveP[k] || t.price || 0;
+        if (!price) return;
+        if (!comboMap[k] || price < comboMap[k].pub_price) {
+            var mkt = mktLookup[k] || {};
+            comboMap[k] = {
+                building: t.building,
+                neighborhood: mkt.neighborhood || '',
+                bed_type: t.bed,
+                pub_price: price,
+                pf_avg:  mkt.pf_avg  || null,
+                pf_low:  mkt.pf_low  || null,
+                pf_high: mkt.pf_high || null,
+                pf_url:  mkt.pf_url  || null,
+                tier: t.tier || 'standard',
+                listing_url: t.listing_url || '',
+                ref: t.ref || ''
+            };
+        }
+    });
+    var pub     = Object.keys(comboMap).map(function(k){ return comboMap[k]; });
+    var withMkt = pub.filter(function(m){ return m.pf_avg; });
+    var below   = withMkt.filter(function(m){ return m.pub_price < m.pf_avg; });
+    var above   = withMkt.filter(function(m){ return m.pub_price >= m.pf_avg; });
+    var diffs   = withMkt.map(function(m){ return (m.pub_price - m.pf_avg) / m.pf_avg * 100; });
+    var avgDiff = diffs.length ? avg(diffs) : null;
+    var pctCov  = withMkt.length ? Math.round(withMkt.length / pub.length * 100) : 0;
+
+    var adStr   = avgDiff !== null ? (avgDiff >= 0 ? "+" : "") + avgDiff.toFixed(1) + "%" : "-";
     var adColor = avgDiff !== null && avgDiff < 0 ? "color:#dc2626" : "color:#16a34a";
 
     document.getElementById("pub-kpi-row").innerHTML =
-        kpi("Published Combos",    pub.length,                            pctCov + "% of tracked", "c-teal")  +
-        kpi("Avg Published Price", fmtK(Math.round(avg(pub.map(function(m){return m.pub_price;})))), "AED/month", "c-blue") +
-        kpi("Below Market",        below.length,                          withMkt.length?(Math.round(below.length/withMkt.length*100)+"%"):"-", "c-red") +
-        kpi("At/Above Market",     above.length,                          "Well positioned",        "c-green") +
-        kpi("Avg Price Gap",       "<span style=\"" + adColor + "\">" + adStr + "</span>", "vs PF market avg", avgDiff!==null&&avgDiff<0?"c-amber":"c-green");
+        kpi("Published Combos",    pub.length,  pctCov + "% with market data", "c-teal") +
+        kpi("Avg Published Price", fmtK(Math.round(avg(pub.map(function(m){ return m.pub_price; })))), "AED/month", "c-blue") +
+        kpi("Below Market",        below.length, withMkt.length ? (Math.round(below.length / withMkt.length * 100) + "%") : "-", "c-red") +
+        kpi("At/Above Market",     above.length, "Well positioned", "c-green") +
+        kpi("Avg Price Gap", "<span style=\"" + adColor + "\">" + adStr + "</span>", "vs PF market avg", avgDiff !== null && avgDiff < 0 ? "c-amber" : "c-green");
 
-    // Sync banner — shown when no live data loaded yet
+    // Sync banner
     var existBanner = document.getElementById('pub-sync-banner');
     if (!hasLive) {
         if (!existBanner) {
             existBanner = document.createElement('div');
             existBanner.id = 'pub-sync-banner';
             existBanner.style.cssText = 'text-align:center;padding:11px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;color:#92400e;font-size:13px;margin-bottom:14px;cursor:pointer';
-            existBanner.innerHTML = '&#9651; Click <b>Sync</b> in the header to load live published prices from Property Finder';
+            existBanner.innerHTML = '&#9651; Click <b>Sync</b> in the header to refresh live prices from Property Finder';
             existBanner.onclick = function(){ syncFromAPI(); };
             var panel = document.getElementById('panel-published');
             var tblWrap = panel ? panel.querySelector('.tbl-wrap') : null;
@@ -1329,12 +1356,12 @@ function renderPublished() {
         if (existBanner) existBanner.style.display = 'none';
     }
 
-    var s20 = withMkt.slice().sort(function(a,b){return b.pub_price-a.pub_price;}).slice(0,20);
+    var s20 = withMkt.slice().sort(function(a,b){ return b.pub_price - a.pub_price; }).slice(0,20);
     mkChart("ch-pub-vs", "bar", {
-        labels: s20.map(function(x){ return (x.building.length>16?x.building.slice(0,14)+"...":x.building)+" "+x.bed_type; }),
+        labels: s20.map(function(x){ return (x.building.length>16?x.building.slice(0,14)+"...":x.building) + " " + x.bed_type; }),
         datasets: [
-            { label:"Published",   data: s20.map(function(x){return x.pub_price;}), backgroundColor:"#00b4a0cc", borderRadius:4 },
-            { label:"Market Avg",  data: s20.map(function(x){return x.pf_avg;}),   backgroundColor:"#e5e7eb",    borderRadius:4 }
+            { label:"Published",  data: s20.map(function(x){ return x.pub_price; }), backgroundColor:"#00b4a0cc", borderRadius:4 },
+            { label:"Market Avg", data: s20.map(function(x){ return x.pf_avg; }),    backgroundColor:"#e5e7eb",    borderRadius:4 }
         ]
     }, { responsive:true, maintainAspectRatio:false, indexAxis:"y",
          interaction:{mode:"index",intersect:false},
@@ -1342,11 +1369,11 @@ function renderPublished() {
          tooltip:{callbacks:{label:function(c){return c.dataset.label+": AED "+c.parsed.x.toLocaleString()+"/mo";}}}},
          scales:{x:{grid:{color:"#f0f0f0"},ticks:{callback:function(v){return "AED "+(v/1000).toFixed(0)+"k";}}},y:{grid:{display:false},ticks:{font:{size:10}}}} });
 
-    var sd = withMkt.slice().sort(function(a,b){ return ((a.pub_price-a.pf_avg)/a.pf_avg)-((b.pub_price-b.pf_avg)/b.pf_avg); }).slice(0,20);
+    var sd = withMkt.slice().sort(function(a,b){ return ((a.pub_price-a.pf_avg)/a.pf_avg) - ((b.pub_price-b.pf_avg)/b.pf_avg); }).slice(0,20);
     mkChart("ch-pub-diff", "bar", {
-        labels: sd.map(function(x){ return (x.building.length>16?x.building.slice(0,14)+"...":x.building)+" "+x.bed_type; }),
-        datasets: [{ label:"% vs Market", data: sd.map(function(x){return +((x.pub_price-x.pf_avg)/x.pf_avg*100).toFixed(1);}),
-                     backgroundColor: sd.map(function(x){return x.pub_price<x.pf_avg?"#ef4444cc":"#00b4a0cc";}), borderRadius:4 }]
+        labels: sd.map(function(x){ return (x.building.length>16?x.building.slice(0,14)+"...":x.building) + " " + x.bed_type; }),
+        datasets: [{ label:"% vs Market", data: sd.map(function(x){ return +((x.pub_price-x.pf_avg)/x.pf_avg*100).toFixed(1); }),
+                     backgroundColor: sd.map(function(x){ return x.pub_price < x.pf_avg ? "#ef4444cc" : "#00b4a0cc"; }), borderRadius:4 }]
     }, { responsive:true, maintainAspectRatio:false, indexAxis:"y",
          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return (c.parsed.x>=0?"+":"")+c.parsed.x.toFixed(1)+"% vs market";}}}},
          scales:{x:{grid:{color:"#f0f0f0"},ticks:{callback:function(v){return v+"%";}}},y:{grid:{display:false},ticks:{font:{size:10}}}} });
@@ -1356,66 +1383,44 @@ function renderPublished() {
     var countEl = document.getElementById('pub-search-count');
     if (countEl) countEl.textContent = pubSearchTerm ? rows.length + ' result' + (rows.length !== 1 ? 's' : '') : '';
     var t = "<table><thead><tr><th>Building</th><th>Area</th><th>Bed</th><th>Published</th><th>New Price</th><th>Actions</th><th>Market Avg</th><th>vs Market</th><th>Mkt Low</th><th>Mkt High</th><th>PF Tier</th></tr></thead><tbody>";
-    for (var i=0; i<rows.length; i++) {
+    for (var i = 0; i < rows.length; i++) {
         var r = rows[i];
-        var diff2 = r.pf_avg ? (r.pub_price-r.pf_avg)/r.pf_avg*100 : null;
-        var pc = diff2===null?"p-gray":diff2<-20?"p-red":diff2<0?"p-amber":"p-green";
-        var diffStr = diff2!==null ? "<span class=\"pill "+pc+"\">"+(diff2>=0?"+":"")+diff2.toFixed(1)+"%</span>" : "-";
-        var tierKey = r.building + "|" + r.bed_type;
-        var tierKey2 = tierKey;
-        // Use live data from Sync if available, else fall back to injected LISTING_TIERS
-        var liveTiers = window._LIVE_LISTING_TIERS;
-        var liveTier = null;
-        if (liveTiers) {
-          for (var li = 0; li < liveTiers.length; li++) {
-            if (liveTiers[li].building === r.building && liveTiers[li].bed === r.bed_type) {
-              liveTier = liveTiers[li]; break;
-            }
-          }
-        }
-        if (liveTier) {
-          r = Object.assign({}, r, { tier: liveTier.tier });
-        }
-        // tierVal uses live tier first, then falls back to baked _TIER_MAP
-        var tierVal = (liveTier ? liveTier.tier : null) || _TIER_MAP[tierKey] || "standard";
+        var diff2 = r.pf_avg ? (r.pub_price - r.pf_avg) / r.pf_avg * 100 : null;
+        var pc = diff2 === null ? "p-gray" : diff2 < -20 ? "p-red" : diff2 < 0 ? "p-amber" : "p-green";
+        var diffStr = diff2 !== null ? "<span class=\"pill " + pc + "\">" + (diff2 >= 0 ? "+" : "") + diff2.toFixed(1) + "%</span>" : "-";
+        var tierKey  = r.building + "|" + r.bed_type;
+        var tierVal  = r.tier || _TIER_MAP[tierKey] || "standard";
         var tierCell;
-        if (tierVal === "premium")  tierCell = "<td><span style=\"background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9733; Premium</span></td>";
+        if (tierVal === "premium")       tierCell = "<td><span style=\"background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9733; Premium</span></td>";
         else if (tierVal === "featured") tierCell = "<td><span style=\"background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap\">&#9670; Featured</span></td>";
-        else tierCell = "<td><span style=\"background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;white-space:nowrap\">&#9679; Standard</span></td>";
+        else                             tierCell = "<td><span style=\"background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;white-space:nowrap\">&#9679; Standard</span></td>";
         var activeRefMap = (window._LIVE_REF_MAP && Object.keys(window._LIVE_REF_MAP).length) ? window._LIVE_REF_MAP : _LISTING_REF_MAP;
-        var listingUrl = activeRefMap[tierKey2] || null;
-        // Find ref for this row (for publish button)
-        var rowRef = liveTier ? liveTier.ref : '';
-        if (!rowRef) {
-          var allTiers = typeof LISTING_TIERS !== 'undefined' ? LISTING_TIERS : [];
-          for (var li2 = 0; li2 < allTiers.length; li2++) {
-            if (allTiers[li2].building === r.building && allTiers[li2].bed === r.bed_type) { rowRef = allTiers[li2].ref; break; }
-          }
-        }
+        var listingUrl = r.listing_url || activeRefMap[tierKey] || null;
+        var rowRef = r.ref || '';
         var bldgCell = r.pf_url
-          ? "<a href=\""+r.pf_url+"\" target=\"_blank\" style=\"color:#1e293b;font-weight:600;text-decoration:none;border-bottom:1px dashed #94a3b8\" title=\"View market listings on Property Finder\">"+r.building+" ↗</a>"
+          ? "<a href=\"" + r.pf_url + "\" target=\"_blank\" style=\"color:#1e293b;font-weight:600;text-decoration:none;border-bottom:1px dashed #94a3b8\" title=\"View market listings on Property Finder\">" + r.building + " &#8599;</a>"
           : r.building;
         var pubLink = listingUrl
-          ? "<a href=\""+listingUrl+"\" target=\"_blank\" style=\"color:#0d9488;font-weight:700;text-decoration:none;border-bottom:1px dashed #0d9488\" title=\"View this listing on Property Finder\">"+fmtAED(r.pub_price)+" ↗</a>"
-          : "<span style=\"color:#0d9488;font-weight:700\">"+fmtAED(r.pub_price)+"</span>";
+          ? "<a href=\"" + listingUrl + "\" target=\"_blank\" style=\"color:#0d9488;font-weight:700;text-decoration:none;border-bottom:1px dashed #0d9488\" title=\"View this listing on Property Finder\">" + fmtAED(r.pub_price) + " &#8599;</a>"
+          : "<span style=\"color:#0d9488;font-weight:700\">" + fmtAED(r.pub_price) + "</span>";
         var _role = sessionStorage.getItem('fam_role');
         var isAdmin = (_role === 'admin' || _role === 'owner');
         var isOwner = (_role === 'owner');
         var priceInp = (rowRef && isAdmin)
-          ? '<input type="number" class="price-inp" data-ref="'+rowRef+'" placeholder="AED" style="width:80px;padding:3px 5px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;text-align:right">'
+          ? '<input type="number" class="price-inp" data-ref="' + rowRef + '" placeholder="AED" style="width:80px;padding:3px 5px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;text-align:right">'
           : '<span style="color:#94a3b8;font-size:11px">—</span>';
         var pubBtn = (rowRef && isAdmin)
-          ? '<button class="pub-btn" data-ref="'+rowRef+'" onclick="publishPrice(this)" style="padding:3px 8px;background:#0d9488;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">Publish &#8593;</button>'
+          ? '<button class="pub-btn" data-ref="' + rowRef + '" onclick="publishPrice(this)" style="padding:3px 8px;background:#0d9488;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">Publish &#8593;</button>'
           : '';
         var unpubBtn = (rowRef && isOwner)
-          ? '<button class="unpub-btn" data-ref="'+rowRef+'" onclick="unpublishListing(this)" style="padding:3px 8px;background:#dc2626;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px" title="Unpublish this listing from Property Finder">Unpublish &#8595;</button>'
+          ? '<button class="unpub-btn" data-ref="' + rowRef + '" onclick="unpublishListing(this)" style="padding:3px 8px;background:#dc2626;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px" title="Unpublish this listing from Property Finder">Unpublish &#8595;</button>'
           : '';
-        t += "<tr><td>"+bldgCell+"</td><td>"+r.neighborhood+"</td><td><b>"+r.bed_type+"</b></td>" +
-             "<td>"+pubLink+"</td>" +
-             "<td style='white-space:nowrap'>"+priceInp+"</td>" +
-             "<td style='white-space:nowrap'>"+pubBtn+unpubBtn+"</td>" +
-             "<td>"+fmtAED(r.pf_avg)+"</td><td>"+diffStr+"</td>" +
-             "<td>"+fmtAED(r.pf_low)+"</td><td>"+fmtAED(r.pf_high)+"</td>" + tierCell + "</tr>";
+        t += "<tr><td>" + bldgCell + "</td><td>" + r.neighborhood + "</td><td><b>" + r.bed_type + "</b></td>" +
+             "<td>" + pubLink + "</td>" +
+             "<td style='white-space:nowrap'>" + priceInp + "</td>" +
+             "<td style='white-space:nowrap'>" + pubBtn + unpubBtn + "</td>" +
+             "<td>" + fmtAED(r.pf_avg) + "</td><td>" + diffStr + "</td>" +
+             "<td>" + fmtAED(r.pf_low) + "</td><td>" + fmtAED(r.pf_high) + "</td>" + tierCell + "</tr>";
     }
     t += "</tbody></table>";
     document.getElementById("pub-tbl").innerHTML = t;
